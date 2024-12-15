@@ -2,9 +2,8 @@
 #include <sstream>
 #include <fstream>
 
-#include <SOIL/SOIL.h>
-
 #include "resource.h"
+#include "stb_image.h"
 
 std::map<std::string, Shader> ResourceManager::Shaders;
 std::map<std::string, Texture2D> ResourceManager::Textures;
@@ -65,22 +64,18 @@ ResourceManager::GetShader(std::string name)
 int
 ResourceManager::LoadTexture(std::string name, const char *path, GLboolean alpha)
 {
-	int width, height;
-	unsigned char *image = SOIL_load_image(
-		path,
-		&width,
-		&height,
-		0,
-		alpha ? SOIL_LOAD_RGBA : SOIL_LOAD_RGB);
-	if (image == nullptr) {
+	int width, height, channels;
+	unsigned char *pixels = stbi_load(path, &width, &height, &channels, 4);
+	if (pixels == nullptr)
+	{
 		std::cerr << "file '" << path << "' not found\n";
 		return -1;
 	}
 
-	GLint fmt = alpha ? GL_RGBA : GL_RGB;
+	GLint fmt = GL_RGBA;
 	Texture2D texture;
-	texture.Generate(width, height, fmt, fmt, image);
-	SOIL_free_image_data(image);
+	texture.Generate(width, height, fmt, fmt, pixels);
+	stbi_image_free(pixels);
 
 	Textures[name] = texture;
 	return 0;
