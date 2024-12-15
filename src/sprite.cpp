@@ -1,6 +1,7 @@
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "glcheck.hpp"
 #include "sprite.hpp"
 
 SpriteRenderer::SpriteRenderer(Shader const& shader) :
@@ -17,24 +18,24 @@ SpriteRenderer::SpriteRenderer(Shader const& shader) :
 		1.0f, 0.0f, 1.0f, 0.0f,
 	};
 
-	glGenVertexArrays(1, &this->quadVAO);
-	glBindVertexArray(this->quadVAO);
+	glCheck(glGenVertexArrays(1, &quadVAO));
+	glCheck(glBindVertexArray(quadVAO));
 
-	glGenBuffers(1, &vbo);
+	glCheck(glGenBuffers(1, &vbo));
 
-      	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glCheck(glBindBuffer(GL_ARRAY_BUFFER, vbo));
+	glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW));
 
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
+	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0));
+	glCheck(glEnableVertexAttribArray(0));
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+	glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	glCheck(glBindVertexArray(0));
 }
 
 SpriteRenderer::~SpriteRenderer()
 {
-	glDeleteVertexArrays(1, &quadVAO);
+	glCheck(glDeleteVertexArrays(1, &quadVAO));
 }
 
 void
@@ -52,7 +53,7 @@ SpriteRenderer::DrawSprite(Texture2D &texture, glm::vec2 position, glm::vec2 siz
 	shader.getUniform("spriteColor").setVector3f(color);
 
 	Texture2D::bind(&texture, 0);
-	glBindVertexArray(quadVAO);
-	glDrawArrays(GL_TRIANGLES, 0, 6);
-	glBindVertexArray(0);
+	glCheck(glBindVertexArray(quadVAO));
+	glCheck(glDrawArrays(GL_TRIANGLES, 0, 6));
+	glCheck(glBindVertexArray(0));
 }
