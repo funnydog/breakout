@@ -5,9 +5,9 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-#include "shader.h"
-#include "texture.h"
-#include "gameobject.h"
+#include "shader.hpp"
+#include "texture.hpp"
+#include "gameobject.hpp"
 
 struct Particle
 {

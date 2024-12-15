@@ -3,12 +3,12 @@
 #include <sstream>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "ball.h"
-#include "game.h"
-#include "particle.h"
-#include "postprocess.h"
-#include "sprite.h"
-#include "text.h"
+#include "ball.hpp"
+#include "game.hpp"
+#include "particle.hpp"
+#include "postprocess.hpp"
+#include "sprite.hpp"
+#include "text.hpp"
 
 static constexpr glm::vec2 PLAYER_SIZE(100, 20);
 static constexpr float PLAYER_VELOCITY(500.0f);

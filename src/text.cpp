@@ -4,7 +4,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include "text.h"
+#include "text.hpp"
 
 TextRenderer::TextRenderer(Shader const& s)
 	: TextShader(s)

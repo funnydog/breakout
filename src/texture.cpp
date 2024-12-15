@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "glcheck.hpp"
-#include "texture.h"
+#include "texture.hpp"
 #include "stb_image.h"
 
 Texture2D::Texture2D()

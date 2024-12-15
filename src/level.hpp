@@ -6,8 +6,8 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-#include "gameobject.h"
-#include "sprite.h"
+#include "gameobject.hpp"
+#include "sprite.hpp"
 #include "resources.hpp"
 #include "resourceholder.hpp"
 

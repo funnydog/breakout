@@ -5,7 +5,7 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-#include "gameobject.h"
+#include "gameobject.hpp"
 
 const glm::vec2 POWERUP_SIZE(60, 20);
 const glm::vec2 POWERUP_VELOCITY(0.0f, 150.0f);

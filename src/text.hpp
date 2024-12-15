@@ -6,8 +6,8 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-#include "texture.h"
-#include "shader.h"
+#include "texture.hpp"
+#include "shader.hpp"
 
 struct Character
 {

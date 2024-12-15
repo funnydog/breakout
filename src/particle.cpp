@@ -1,4 +1,4 @@
-#include "particle.h"
+#include "particle.hpp"
 
 ParticleGen::ParticleGen(Shader const& shader, Texture2D texture, GLuint amount) :
 	shader(shader), texture(texture), amount(amount), lastUsedParticle(0)

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include "sprite.h"
+#include "sprite.hpp"
 
 SpriteRenderer::SpriteRenderer(Shader const& shader) :
 	shader(shader)

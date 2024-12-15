@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "postprocess.h"
+#include "postprocess.hpp"
 
 Postprocess::Postprocess(Shader const& shader, unsigned width, unsigned height) :
 	PostProcessingShader(shader), Texture(), Width(width), Height(height),

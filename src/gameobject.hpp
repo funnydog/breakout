@@ -4,8 +4,8 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-#include "texture.h"
-#include "sprite.h"
+#include "texture.hpp"
+#include "sprite.hpp"
 
 class GameObject
 {

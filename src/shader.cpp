@@ -5,7 +5,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#include "shader.h"
+#include "shader.hpp"
 #include "utility.hpp"
 
 void

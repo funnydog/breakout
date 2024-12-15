@@ -4,9 +4,9 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-#include "texture.h"
-#include "sprite.h"
-#include "gameobject.h"
+#include "texture.hpp"
+#include "sprite.hpp"
+#include "gameobject.hpp"
 
 class BallObject : public GameObject
 {

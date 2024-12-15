@@ -4,9 +4,9 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-#include "texture.h"
-#include "shader.h"
-#include "sprite.h"
+#include "texture.hpp"
+#include "shader.hpp"
+#include "sprite.hpp"
 
 class Postprocess
 {

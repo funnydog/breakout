@@ -7,8 +7,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "level.h"
-#include "powerup.h"
+#include "level.hpp"
+#include "powerup.hpp"
 #include "resources.hpp"
 #include "resourceholder.hpp"
 
