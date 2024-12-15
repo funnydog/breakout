@@ -440,39 +440,39 @@ void
 Game::SpawnPowerUPs(GameObject &block)
 {
 	if (shouldSpawn(75)) {
-		this->PowerUPs.push_back(
-			PowerUP(PowerUP::SPEED, glm::vec3(0.5f, 0.5f, 1.0f), 0.0f, block.Position,
-				ResourceManager::GetTexture("powerup_speed")));
+		PowerUPs.emplace_back(
+			PowerUP::SPEED, glm::vec3(0.5f, 0.5f, 1.0f), 0.0f, block.Position,
+			ResourceManager::GetTexture("powerup_speed"));
 	}
 
 	if (shouldSpawn(75)) {
-		this->PowerUPs.push_back(
-			PowerUP(PowerUP::STICKY, glm::vec3(1.0f, 0.5f, 1.0f), 20.0f, block.Position,
-				ResourceManager::GetTexture("powerup_sticky")));
+		PowerUPs.emplace_back(
+			PowerUP::STICKY, glm::vec3(1.0f, 0.5f, 1.0f), 20.0f, block.Position,
+			ResourceManager::GetTexture("powerup_sticky"));
 	}
 
 	if (shouldSpawn(75)) {
-		this->PowerUPs.push_back(
-			PowerUP(PowerUP::PASSTHROUGH, glm::vec3(0.5f, 1.0f, 0.5f), 10.0f, block.Position,
-				ResourceManager::GetTexture("powerup_passthrough")));
+		PowerUPs.emplace_back(
+			PowerUP::PASSTHROUGH, glm::vec3(0.5f, 1.0f, 0.5f), 10.0f, block.Position,
+			ResourceManager::GetTexture("powerup_passthrough"));
 	}
 
 	if (shouldSpawn(75)) {
-		this->PowerUPs.push_back(
-			PowerUP(PowerUP::PAD_INCREASE, glm::vec3(1.0f, 0.6f, 0.4f), 0.0f, block.Position,
-				ResourceManager::GetTexture("powerup_increase")));
+		PowerUPs.emplace_back(
+			PowerUP::PAD_INCREASE, glm::vec3(1.0f, 0.6f, 0.4f), 0.0f, block.Position,
+			ResourceManager::GetTexture("powerup_increase"));
 	}
 
 	if (shouldSpawn(15)) {
-		this->PowerUPs.push_back(
-			PowerUP(PowerUP::CONFUSE, glm::vec3(1.0f, 0.3f, 0.3f), 15.0f, block.Position,
-				ResourceManager::GetTexture("powerup_confuse")));
+		PowerUPs.emplace_back(
+			PowerUP::CONFUSE, glm::vec3(1.0f, 0.3f, 0.3f), 15.0f, block.Position,
+			ResourceManager::GetTexture("powerup_confuse"));
 	}
 
 	if (shouldSpawn(15)) {
-		this->PowerUPs.push_back(
-			PowerUP(PowerUP::CHAOS, glm::vec3(0.9f, 0.25f, 0.25f), 15.0f, block.Position,
-				ResourceManager::GetTexture("powerup_chaos")));
+		PowerUPs.emplace_back(
+			PowerUP::CHAOS, glm::vec3(0.9f, 0.25f, 0.25f), 15.0f, block.Position,
+			ResourceManager::GetTexture("powerup_chaos"));
 	}
 }
 
