@@ -55,8 +55,6 @@ public:
 		COMPUTE,
 	};
 
-	GLuint ID;
-
 	int  Create();
 	void Destroy();
 
@@ -70,6 +68,8 @@ public:
 private:
 	static int checkShaderCompilation(GLuint object);
 	static int checkProgramLinkage(GLuint object);
+
+	GLuint ID = 0;
 };
 
 #endif
