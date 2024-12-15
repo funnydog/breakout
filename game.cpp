@@ -17,6 +17,13 @@ static constexpr float PLAYER_VELOCITY(500.0f);
 static constexpr glm::vec2 INITIAL_BALL_VELOCITY(100.0f, -350.0f);
 static constexpr float BALL_RADIUS = 12.5f;
 
+static const char *levels[] = {
+	"assets/levels/one.txt",
+	"assets/levels/two.txt",
+	"assets/levels/three.txt",
+	"assets/levels/four.txt",
+};
+
 Game::Game(GLuint width, GLuint height) :
 	State(State::GAME_MENU), Keys(), KeysProcessed(), Width(width), Height(height), Level(0), Lives(3),
 	shakeTime(0.0f)
@@ -29,32 +36,26 @@ Game::~Game()
 
 void Game::Init()
 {
-	if (ResourceManager::LoadTexture("face", "textures/awesomeface.png", GL_TRUE) < 0
-	    || ResourceManager::LoadTexture("background", "textures/background.jpg", GL_FALSE) < 0
-	    || ResourceManager::LoadTexture("block", "textures/block.png", GL_FALSE) < 0
-	    || ResourceManager::LoadTexture("block_solid", "textures/block_solid.png", GL_FALSE) < 0
-	    || ResourceManager::LoadTexture("paddle", "textures/paddle.png", GL_TRUE) < 0
-	    || ResourceManager::LoadTexture("particle", "textures/particle.png", GL_TRUE) < 0
-	    || ResourceManager::LoadTexture("powerup_speed", "textures/powerup_speed.png", GL_TRUE) < 0
-	    || ResourceManager::LoadTexture("powerup_sticky", "textures/powerup_sticky.png", GL_TRUE) < 0
-	    || ResourceManager::LoadTexture("powerup_increase", "textures/powerup_increase.png", GL_TRUE) < 0
-	    || ResourceManager::LoadTexture("powerup_confuse", "textures/powerup_confuse.png", GL_TRUE) < 0
-	    || ResourceManager::LoadTexture("powerup_chaos", "textures/powerup_chaos.png", GL_TRUE) < 0
-	    || ResourceManager::LoadTexture("powerup_passthrough", "textures/powerup_passthrough.png", GL_TRUE) < 0)
+	if (ResourceManager::LoadTexture("face", "assets/textures/awesomeface.png", GL_TRUE) < 0
+	    || ResourceManager::LoadTexture("background", "assets/textures/background.jpg", GL_FALSE) < 0
+	    || ResourceManager::LoadTexture("block", "assets/textures/block.png", GL_FALSE) < 0
+	    || ResourceManager::LoadTexture("block_solid", "assets/textures/block_solid.png", GL_FALSE) < 0
+	    || ResourceManager::LoadTexture("paddle", "assets/textures/paddle.png", GL_TRUE) < 0
+	    || ResourceManager::LoadTexture("particle", "assets/textures/particle.png", GL_TRUE) < 0
+	    || ResourceManager::LoadTexture("powerup_speed", "assets/textures/powerup_speed.png", GL_TRUE) < 0
+	    || ResourceManager::LoadTexture("powerup_sticky", "assets/textures/powerup_sticky.png", GL_TRUE) < 0
+	    || ResourceManager::LoadTexture("powerup_increase", "assets/textures/powerup_increase.png", GL_TRUE) < 0
+	    || ResourceManager::LoadTexture("powerup_confuse", "assets/textures/powerup_confuse.png", GL_TRUE) < 0
+	    || ResourceManager::LoadTexture("powerup_chaos", "assets/textures/powerup_chaos.png", GL_TRUE) < 0
+	    || ResourceManager::LoadTexture("powerup_passthrough", "assets/textures/powerup_passthrough.png", GL_TRUE) < 0)
 		std::cerr << "LoadTexture error\n";
 
-	if (ResourceManager::LoadShader("sprite", "shaders/sprite.vs", "shaders/sprite.fs", nullptr) < 0
-	    || ResourceManager::LoadShader("particle", "shaders/particle.vs", "shaders/particle.fs", nullptr) < 0
-	    || ResourceManager::LoadShader("effects", "shaders/postprocess.vs", "shaders/postprocess.fs", nullptr) < 0
-	    || ResourceManager::LoadShader("text", "shaders/text.vs", "shaders/text.fs", nullptr) < 0)
+	if (ResourceManager::LoadShader("sprite", "assets/shaders/sprite.vs", "assets/shaders/sprite.fs", nullptr) < 0
+	    || ResourceManager::LoadShader("particle", "assets/shaders/particle.vs", "assets/shaders/particle.fs", nullptr) < 0
+	    || ResourceManager::LoadShader("effects", "assets/shaders/postprocess.vs", "assets/shaders/postprocess.fs", nullptr) < 0
+	    || ResourceManager::LoadShader("text", "assets/shaders/text.vs", "assets/shaders/text.fs", nullptr) < 0)
 		std::cerr << "LoadShader error\n";
 
-	const char *levels[] = {
-		"levels/one.txt",
-		"levels/two.txt",
-		"levels/three.txt",
-		"levels/four.txt",
-	};
 	for (const char *path : levels) {
 		GameLevel level;
 		if (level.Load(path, Width, Height / 2) < 0)
@@ -105,7 +106,7 @@ void Game::Init()
 	text.Use();
 	text.GetUniform("projection").SetMatrix4(proj);
 	this->text = std::make_unique<TextRenderer>(text);
-	this->text->Load("fonts/ocraext.ttf", 24);
+	this->text->Load("assets/fonts/ocraext.ttf", 24);
 
 	auto &particle = ResourceManager::GetShader("particle");
 	particle.Use();
@@ -121,12 +122,6 @@ void Game::Init()
 void
 Game::ResetLevel()
 {
-	const char *levels[] = {
-		"levels/one.txt",
-		"levels/two.txt",
-		"levels/three.txt",
-		"levels/four.txt",
-	};
 	if (0 <= this->Level && this->Level < 5) {
 		GameLevel level;
 		if (level.Load(levels[this->Level], Width, Height / 2) < 0)
