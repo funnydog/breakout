@@ -158,12 +158,12 @@ Game::run()
 		     --steps, accumulator -= deltaTicks)
 		{
 			processInput();
-			Update(SecondsPerFrame);
+			update(SecondsPerFrame);
 		}
 
 		glClearColor(0.f, 0.f, 0.2f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-		Render();
+		render();
 		glfwSwapBuffers(mWindow);
 	}
 }
@@ -273,7 +273,7 @@ Game::ResetPlayer()
 }
 
 void
-Game::Update(GLfloat dt)
+Game::update(GLfloat dt)
 {
 	// update the paddle
 	if (State != State::GAME_ACTIVE)
@@ -340,7 +340,7 @@ Game::Update(GLfloat dt)
 	}
 }
 
-void Game::Render()
+void Game::render()
 {
 	if (this->State == State::GAME_ACTIVE || this->State == State::GAME_MENU) {
 		this->effects->BeginRender();

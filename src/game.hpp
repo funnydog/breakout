@@ -38,10 +38,8 @@ public:
 
 	void run();
 	void processInput();
-
-	// void ProcessInput(GLfloat dt);
-	void Update(GLfloat dt);
-	void Render();
+	void update(GLfloat dt);
+	void render();
 
 	void ResetLevel();
 	void ResetPlayer();
