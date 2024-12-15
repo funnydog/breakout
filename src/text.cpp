@@ -5,7 +5,6 @@
 #include FT_FREETYPE_H
 
 #include "text.h"
-#include "resource.h"
 
 TextRenderer::TextRenderer(Shader const& s)
 	: TextShader(s)

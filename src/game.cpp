@@ -7,7 +7,6 @@
 #include "game.h"
 #include "particle.h"
 #include "postprocess.h"
-#include "resource.h"
 #include "sprite.h"
 #include "text.h"
 
@@ -36,36 +35,18 @@ Game::~Game()
 
 void Game::Init()
 {
-	if (ResourceManager::LoadTexture("face", "assets/textures/awesomeface.png", GL_TRUE) < 0
-	    || ResourceManager::LoadTexture("background", "assets/textures/background.jpg", GL_FALSE) < 0
-	    || ResourceManager::LoadTexture("block", "assets/textures/block.png", GL_FALSE) < 0
-	    || ResourceManager::LoadTexture("block_solid", "assets/textures/block_solid.png", GL_FALSE) < 0
-	    || ResourceManager::LoadTexture("paddle", "assets/textures/paddle.png", GL_TRUE) < 0
-	    || ResourceManager::LoadTexture("particle", "assets/textures/particle.png", GL_TRUE) < 0
-	    || ResourceManager::LoadTexture("powerup_speed", "assets/textures/powerup_speed.png", GL_TRUE) < 0
-	    || ResourceManager::LoadTexture("powerup_sticky", "assets/textures/powerup_sticky.png", GL_TRUE) < 0
-	    || ResourceManager::LoadTexture("powerup_increase", "assets/textures/powerup_increase.png", GL_TRUE) < 0
-	    || ResourceManager::LoadTexture("powerup_confuse", "assets/textures/powerup_confuse.png", GL_TRUE) < 0
-	    || ResourceManager::LoadTexture("powerup_chaos", "assets/textures/powerup_chaos.png", GL_TRUE) < 0
-	    || ResourceManager::LoadTexture("powerup_passthrough", "assets/textures/powerup_passthrough.png", GL_TRUE) < 0)
-		std::cerr << "LoadTexture error\n";
-
-	if (ResourceManager::LoadShader("sprite", "assets/shaders/sprite.vs", "assets/shaders/sprite.fs", nullptr) < 0
-	    || ResourceManager::LoadShader("particle", "assets/shaders/particle.vs", "assets/shaders/particle.fs", nullptr) < 0
-	    || ResourceManager::LoadShader("effects", "assets/shaders/postprocess.vs", "assets/shaders/postprocess.fs", nullptr) < 0
-	    || ResourceManager::LoadShader("text", "assets/shaders/text.vs", "assets/shaders/text.fs", nullptr) < 0)
-		std::cerr << "LoadShader error\n";
+	loadAssets();
 
 	for (const char *path : levels) {
 		GameLevel level;
-		if (level.Load(path, Width, Height / 2) < 0)
+		if (level.Load(mTextures, path, Width, Height / 2) < 0)
 			std::cerr << "Level '" << path << "' error\n";
 		else
 			Levels.push_back(level);
 	}
 
 	this->effects = std::make_unique<Postprocess>(
-		ResourceManager::GetShader("effects"),
+		mShaders.get(ShaderID::Postprocess),
 		this->Width,
 		this->Height
 		);
@@ -77,8 +58,7 @@ void Game::Init()
 
 	this->player = std::make_unique<GameObject>(
 		playerPos, PLAYER_SIZE,
-		ResourceManager::GetTexture("paddle")
-		);
+		mTextures.get(TextureID::Paddle));
 
 	glm::vec2 ballPos = playerPos + glm::vec2(
 		PLAYER_SIZE.x / 2 - BALL_RADIUS,
@@ -87,10 +67,9 @@ void Game::Init()
 
 	this->ball = std::make_unique<BallObject>(
 		ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY,
-		ResourceManager::GetTexture("face")
-		);
+		mTextures.get(TextureID::Face));
 
-	auto &sprite = ResourceManager::GetShader("sprite");
+	auto sprite = mShaders.get(ShaderID::Sprite);
 	sprite.use();
 	sprite.getUniform("image").setInteger(0);
 
@@ -102,21 +81,20 @@ void Game::Init()
 
 	this->renderer = std::make_unique<SpriteRenderer>(sprite);
 
-	auto &text = ResourceManager::GetShader("text");
+	auto text = mShaders.get(ShaderID::Text);
 	text.use();
 	text.getUniform("projection").setMatrix4(proj);
 	this->text = std::make_unique<TextRenderer>(text);
 	this->text->Load("assets/fonts/ocraext.ttf", 24);
 
-	auto &particle = ResourceManager::GetShader("particle");
+	auto particle = mShaders.get(ShaderID::Particle);
 	particle.use();
 	particle.getUniform("sprite").setInteger(0);
 	particle.getUniform("projection").setMatrix4(proj);
 	this->particles = std::make_unique<ParticleGen>(
 		particle,
-		ResourceManager::GetTexture("particle"),
-		500
-		);
+		mTextures.get(TextureID::Particle),
+		500);
 }
 
 void
@@ -124,7 +102,7 @@ Game::ResetLevel()
 {
 	if (0 <= this->Level && this->Level < 5) {
 		GameLevel level;
-		if (level.Load(levels[this->Level], Width, Height / 2) < 0)
+		if (level.Load(mTextures, levels[this->Level], Width, Height / 2) < 0)
 			std::cerr << "Level '" << levels[this->Level] << "' error\n";
 		else
 			Levels[this->Level] = level;
@@ -241,7 +219,7 @@ void Game::Render()
 	if (this->State == State::GAME_ACTIVE || this->State == State::GAME_MENU) {
 		this->effects->BeginRender();
 
-		auto background = ResourceManager::GetTexture("background");
+		auto background = mTextures.get(TextureID::Background);
 		this->renderer->DrawSprite(background, glm::vec2(0.0f), glm::vec2(Width, Height), 0.0f);
 		Levels[Level].Draw(*this->renderer);
 		this->player->Draw(*this->renderer);
@@ -442,37 +420,37 @@ Game::SpawnPowerUPs(GameObject &block)
 	if (shouldSpawn(75)) {
 		PowerUPs.emplace_back(
 			PowerUP::SPEED, glm::vec3(0.5f, 0.5f, 1.0f), 0.0f, block.Position,
-			ResourceManager::GetTexture("powerup_speed"));
+			mTextures.get(TextureID::PowerupSpeed));
 	}
 
 	if (shouldSpawn(75)) {
 		PowerUPs.emplace_back(
 			PowerUP::STICKY, glm::vec3(1.0f, 0.5f, 1.0f), 20.0f, block.Position,
-			ResourceManager::GetTexture("powerup_sticky"));
+			mTextures.get(TextureID::PowerupSticky));
 	}
 
 	if (shouldSpawn(75)) {
 		PowerUPs.emplace_back(
 			PowerUP::PASSTHROUGH, glm::vec3(0.5f, 1.0f, 0.5f), 10.0f, block.Position,
-			ResourceManager::GetTexture("powerup_passthrough"));
+			mTextures.get(TextureID::PowerupPassthrough));
 	}
 
 	if (shouldSpawn(75)) {
 		PowerUPs.emplace_back(
 			PowerUP::PAD_INCREASE, glm::vec3(1.0f, 0.6f, 0.4f), 0.0f, block.Position,
-			ResourceManager::GetTexture("powerup_increase"));
+			mTextures.get(TextureID::PowerupIncrease));
 	}
 
 	if (shouldSpawn(15)) {
 		PowerUPs.emplace_back(
 			PowerUP::CONFUSE, glm::vec3(1.0f, 0.3f, 0.3f), 15.0f, block.Position,
-			ResourceManager::GetTexture("powerup_confuse"));
+			mTextures.get(TextureID::PowerupConfuse));
 	}
 
 	if (shouldSpawn(15)) {
 		PowerUPs.emplace_back(
 			PowerUP::CHAOS, glm::vec3(0.9f, 0.25f, 0.25f), 15.0f, block.Position,
-			ResourceManager::GetTexture("powerup_chaos"));
+			mTextures.get(TextureID::PowerupChaos));
 	}
 }
 
@@ -519,4 +497,35 @@ Game::UpdatePowerUPs(float dt)
 	this->PowerUPs.erase(std::remove_if(this->PowerUPs.begin(), this->PowerUPs.end(),
 					    [](const PowerUP &p) { return p.Destroyed && !p.Activated; }
 				     ), this->PowerUPs.end());
+}
+
+void
+Game::loadAssets()
+{
+	mTextures.load(TextureID::Face, "assets/textures/awesomeface.png");
+	mTextures.load(TextureID::Background, "assets/textures/background.jpg");
+	mTextures.load(TextureID::Block, "assets/textures/block.png");
+	mTextures.load(TextureID::BlockSolid, "assets/textures/block_solid.png");
+	mTextures.load(TextureID::Paddle, "assets/textures/paddle.png");
+	mTextures.load(TextureID::Particle, "assets/textures/particle.png");
+	mTextures.load(TextureID::PowerupSpeed, "assets/textures/powerup_speed.png");
+	mTextures.load(TextureID::PowerupSticky, "assets/textures/powerup_sticky.png");
+	mTextures.load(TextureID::PowerupIncrease, "assets/textures/powerup_increase.png");
+	mTextures.load(TextureID::PowerupConfuse, "assets/textures/powerup_confuse.png");
+	mTextures.load(TextureID::PowerupChaos, "assets/textures/powerup_chaos.png");
+	mTextures.load(TextureID::PowerupPassthrough, "assets/textures/powerup_passthrough.png");
+
+	mShaders.load(ShaderID::Sprite,
+	              "assets/shaders/sprite.vs",
+	              "assets/shaders/sprite.fs");
+
+	mShaders.load(ShaderID::Text,
+	              "assets/shaders/text.vs",
+	              "assets/shaders/text.fs");
+	mShaders.load(ShaderID::Particle,
+	              "assets/shaders/particle.vs",
+	              "assets/shaders/particle.fs");
+	mShaders.load(ShaderID::Postprocess,
+	              "assets/shaders/postprocess.vs",
+	              "assets/shaders/postprocess.fs");
 }

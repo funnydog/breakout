@@ -9,6 +9,8 @@
 
 #include "level.h"
 #include "powerup.h"
+#include "resources.hpp"
+#include "resourceholder.hpp"
 
 class BallObject;
 class ParticleGen;
@@ -59,6 +61,12 @@ private:
 	std::unique_ptr<ParticleGen> particles;
 	std::unique_ptr<Postprocess> effects;
 	std::unique_ptr<TextRenderer> text;
+
+private:
+	void loadAssets();
+
+	TextureHolder mTextures;
+	ShaderHolder mShaders;
 
 	float shakeTime;
 };

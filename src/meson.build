@@ -20,7 +20,6 @@ executable(
     'main.cpp',
     'particle.cpp',
     'postprocess.cpp',
-    'resource.cpp',
     'shader.cpp',
     'sprite.cpp',
     'stb_image.cpp',

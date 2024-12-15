@@ -2,7 +2,6 @@
 #include <GLFW/glfw3.h>
 
 #include "game.h"
-#include "resource.h"
 
 void key_callback(GLFWwindow *win, int key, int scancode, int action, int mode);
 void framebuffer_size_callback(GLFWwindow *win, int width, int height);

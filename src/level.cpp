@@ -4,7 +4,7 @@
 #include <sstream>
 
 int
-GameLevel::Load(const char *path, GLuint levelWidth, GLuint levelHeight)
+GameLevel::Load(TextureHolder& textures, const char *path, GLuint levelWidth, GLuint levelHeight)
 {
 	Bricks.clear();
 
@@ -47,7 +47,7 @@ GameLevel::Load(const char *path, GLuint levelWidth, GLuint levelHeight)
 				// solid block
 				GameObject obj(
 					pos, size,
-					ResourceManager::GetTexture("block_solid"),
+					textures.get(TextureID::BlockSolid),
 					glm::vec3(0.8f, 0.8f, 0.7f));
 				obj.IsSolid = true;
 				Bricks.push_back(obj);
@@ -66,7 +66,7 @@ GameLevel::Load(const char *path, GLuint levelWidth, GLuint levelHeight)
 				}
 				GameObject obj(
 					pos, size,
-					ResourceManager::GetTexture("block"),
+					textures.get(TextureID::Block),
 					color);
 				Bricks.push_back(obj);
 			}

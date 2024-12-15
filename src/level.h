@@ -8,14 +8,15 @@
 
 #include "gameobject.h"
 #include "sprite.h"
-#include "resource.h"
+#include "resources.hpp"
+#include "resourceholder.hpp"
 
 class GameLevel
 {
 public:
 	std::vector<GameObject> Bricks;
 
-	int Load(const char *path, GLuint levelWidth, GLuint levelHeight);
+	int Load(TextureHolder& textures, const char *path, GLuint levelWidth, GLuint levelHeight);
 	void Draw(SpriteRenderer &renderer);
 	bool IsCompleted();
 };
