@@ -94,7 +94,9 @@ Shader::Create()
 {
 	this->ID = glCreateProgram();
 	if (this->ID == 0)
+	{
 		return -1;
+	}
 
 	return 0;
 }
@@ -116,7 +118,8 @@ int
 Shader::Attach(Shader::Type type, const char *source) const
 {
 	GLenum gltype;
-	switch (type) {
+	switch (type)
+	{
 	case Type::VERTEX:   gltype = GL_VERTEX_SHADER;   break;
 	case Type::FRAGMENT: gltype = GL_FRAGMENT_SHADER; break;
 	case Type::GEOMETRY: gltype = GL_GEOMETRY_SHADER; break;
@@ -127,11 +130,14 @@ Shader::Attach(Shader::Type type, const char *source) const
 
 	GLuint shader = glCreateShader(gltype);
 	if (shader == 0)
+	{
 		return -1;
+	}
 
 	glShaderSource(shader, 1, &source, NULL);
 	glCompileShader(shader);
-	if (checkShaderCompilation(shader) < 0) {
+	if (checkShaderCompilation(shader) < 0)
+	{
 		glDeleteShader(shader);
 		return -1;
 	}
@@ -152,7 +158,8 @@ ShaderUniform
 Shader::GetUniform(const char *name) const
 {
 	GLint loc = glGetUniformLocation(this->ID, name);
-	if (loc == -1) {
+	if (loc == -1)
+	{
 		std::cerr << "SHADER: Cannot find the location of uniform '" << name << "'\n";
 		std::abort();
 	}
@@ -163,7 +170,8 @@ ShaderAttrib
 Shader::GetAttrib(const char *name) const
 {
 	GLint loc = glGetAttribLocation(this->ID, name);
-	if (loc == -1) {
+	if (loc == -1)
+	{
 		std::cerr << "SHADER: Cannot find the location of attrib '" << name << "'\n";
 		std::abort();
 	}
@@ -176,7 +184,8 @@ Shader::checkShaderCompilation(GLuint object)
 	GLint success;
 	GLchar infoLog[1024];
 	glGetShaderiv(object, GL_COMPILE_STATUS, &success);
-	if (!success) {
+	if (!success)
+	{
 		glGetShaderInfoLog(object, sizeof(infoLog), NULL, infoLog);
 		std::cerr << "| ERROR::SHADER: Compile-time error: SHADER|\n"
 			  << "+------------------------------------------+\n"
@@ -193,7 +202,8 @@ Shader::checkProgramLinkage(GLuint object)
 	GLint success;
 	GLchar infoLog[1024];
 	glGetProgramiv(object, GL_LINK_STATUS, &success);
-	if (!success) {
+	if (!success)
+	{
 		glGetProgramInfoLog(object, sizeof(infoLog), NULL, infoLog);
 		std::cerr << "| ERROR::Shader: Link-time error: Type PROGRAM|\n"
 			  << "+---------------------------------------------+\n"
