@@ -14,7 +14,8 @@ public:
 	            bool repeat=false, bool smooth=false) noexcept;
 
 	void destroy() noexcept;
-	void bind() const noexcept;
+
+	static void bind(const Texture2D *texture, int textureUnit) noexcept;
 
 	GLuint getHandle() const noexcept { return glHandle; }
 

@@ -79,7 +79,8 @@ Texture2D::destroy() noexcept
 }
 
 void
-Texture2D::bind() const noexcept
+Texture2D::bind(const Texture2D *texture, int textureUnit) noexcept
 {
-	glCheck(glBindTexture(GL_TEXTURE_2D, glHandle));
+	glCheck(glActiveTexture(GL_TEXTURE0 + textureUnit));
+	glCheck(glBindTexture(GL_TEXTURE_2D, texture ? texture->glHandle : 0));
 }

@@ -105,8 +105,7 @@ Postprocess::Render(float time)
 	this->PostProcessingShader.getUniform("chaos").setInteger(this->Chaos);
 	this->PostProcessingShader.getUniform("shake").setInteger(this->Shake);
 
-	glActiveTexture(GL_TEXTURE0);
-	this->Texture.bind();
+	Texture2D::bind(&Texture, 0);
 	glBindVertexArray(this->VAO);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);

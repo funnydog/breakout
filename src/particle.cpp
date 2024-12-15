@@ -54,13 +54,14 @@ ParticleGen::Draw()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	shader.use();
 	glBindVertexArray(this->VAO);
-	for (Particle &p : this->particles) {
+	for (Particle &p : this->particles)
+	{
 		if (p.Life <= 0.0f)
 			continue;
 
 		this->shader.getUniform("offset").setVector2f(p.Position);
 		this->shader.getUniform("color").setVector4f(p.Color);
-		this->texture.bind();
+		Texture2D::bind(&texture, 0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 	glBindVertexArray(0);
