@@ -52,7 +52,7 @@ SpriteRenderer::DrawSprite(Texture2D &texture, glm::vec2 position, glm::vec2 siz
 	shader.getUniform("model").setMatrix4(model);
 	shader.getUniform("spriteColor").setVector3f(color);
 
-	Texture2D::bind(&texture, 0);
+	texture.bind(0);
 	glCheck(glBindVertexArray(quadVAO));
 	glCheck(glDrawArrays(GL_TRIANGLES, 0, 6));
 	glCheck(glBindVertexArray(0));

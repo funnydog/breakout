@@ -61,7 +61,7 @@ ParticleGen::Draw()
 
 		this->shader.getUniform("offset").setVector2f(p.Position);
 		this->shader.getUniform("color").setVector4f(p.Color);
-		Texture2D::bind(&texture, 0);
+		texture.bind(0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 	glBindVertexArray(0);

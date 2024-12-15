@@ -15,7 +15,8 @@ public:
 
 	void destroy() noexcept;
 
-	static void bind(const Texture2D *texture, int textureUnit) noexcept;
+	void bind() const noexcept;
+	void bind(int textureUnit) const noexcept;
 
 	GLuint getHandle() const noexcept { return glHandle; }
 
