@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <algorithm>
 #include <iostream>
 #include <sstream>
@@ -5,11 +6,14 @@
 
 #include "ball.hpp"
 #include "game.hpp"
+#include "glcheck.hpp"
 #include "particle.hpp"
 #include "postprocess.hpp"
 #include "sprite.hpp"
 #include "text.hpp"
 
+namespace
+{
 static constexpr glm::vec2 PLAYER_SIZE(100, 20);
 static constexpr float PLAYER_VELOCITY(500.0f);
 
@@ -23,78 +27,215 @@ static const char *levels[] = {
 	"assets/levels/four.txt",
 };
 
-Game::Game(GLuint width, GLuint height) :
-	State(State::GAME_MENU), Keys(), KeysProcessed(), Width(width), Height(height), Level(0), Lives(3),
-	shakeTime(0.0f)
-{
+const std::uint64_t targetFPS = 60;
+const float SecondsPerFrame = 1.f / targetFPS;
+const int MaxStepsPerFrame = 5;
+const unsigned ScreenWidth = 800;
+const unsigned ScreenHeight = 600;
 }
 
-Game::~Game()
+Game::Game()
+	: State(State::GAME_MENU), Level(0), Lives(3),
+	  shakeTime(0.0f), mWindow(nullptr), mKeys()
 {
-}
+	const char *error;
+	if (!glfwInit())
+	{
+		glfwGetError(&error);
+		throw std::runtime_error(error);
+	}
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-void Game::Init()
-{
+	mWindow = glfwCreateWindow(ScreenWidth, ScreenHeight, "Breakout", nullptr, nullptr);
+	if (!mWindow)
+	{
+		glfwGetError(&error);
+		throw std::runtime_error(error);
+	}
+	glfwMakeContextCurrent(mWindow);
+	glewExperimental = GL_TRUE;
+	glCheck(glewInit());
+
+	glViewport(0, 0, ScreenWidth, ScreenHeight);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	mEventQueue.track(mWindow);
+
+	// load the assets
 	loadAssets();
 
-	for (const char *path : levels) {
+	// load the levels
+	for (const char *path : levels)
+	{
 		GameLevel level;
-		if (level.Load(mTextures, path, Width, Height / 2) < 0)
+		if (level.Load(mTextures, path, ScreenWidth, ScreenHeight / 2) < 0)
+		{
 			std::cerr << "Level '" << path << "' error\n";
-		else
-			Levels.push_back(level);
+			continue;
+		}
+		Levels.push_back(level);
 	}
 
-	this->effects = std::make_unique<Postprocess>(
-		mShaders.get(ShaderID::Postprocess),
-		this->Width,
-		this->Height
-		);
 
-	// player
+	// player, ball and game shader
 	glm::vec2 playerPos = glm::vec2(
-		Width / 2 - PLAYER_SIZE.x / 2,
-		Height - PLAYER_SIZE.y);
+		ScreenWidth / 2 - PLAYER_SIZE.x / 2,
+		ScreenHeight - PLAYER_SIZE.y);
 
-	this->player = std::make_unique<GameObject>(
+	player = std::make_unique<GameObject>(
 		playerPos, PLAYER_SIZE,
 		mTextures.get(TextureID::Paddle));
 
 	glm::vec2 ballPos = playerPos + glm::vec2(
 		PLAYER_SIZE.x / 2 - BALL_RADIUS,
-		-BALL_RADIUS * 2
-		);
+		-BALL_RADIUS * 2);
 
-	this->ball = std::make_unique<BallObject>(
+	ball = std::make_unique<BallObject>(
 		ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY,
 		mTextures.get(TextureID::Face));
 
-	auto sprite = mShaders.get(ShaderID::Sprite);
-	sprite.use();
-	sprite.getUniform("image").setInteger(0);
-
 	glm::mat4 proj = glm::ortho(
-		0.0f, static_cast<GLfloat>(this->Width),
-		static_cast<GLfloat>(this->Height), 0.0f,
+		0.0f, static_cast<GLfloat>(ScreenWidth),
+		static_cast<GLfloat>(ScreenHeight), 0.0f,
 		-1.0f, 1.0f);
-	sprite.getUniform("projection").setMatrix4(proj);
 
-	this->renderer = std::make_unique<SpriteRenderer>(sprite);
+	auto spriteShader = mShaders.get(ShaderID::Sprite);
+	spriteShader.use();
+	spriteShader.getUniform("image").setInteger(0);
+	spriteShader.getUniform("projection").setMatrix4(proj);
 
-	auto text = mShaders.get(ShaderID::Text);
-	text.use();
-	text.getUniform("projection").setMatrix4(proj);
-	this->text = std::make_unique<TextRenderer>(text);
-	this->text->Load("assets/fonts/ocraext.ttf", 24);
+	// sprite renderer
+	renderer = std::make_unique<SpriteRenderer>(spriteShader);
 
-	auto particle = mShaders.get(ShaderID::Particle);
-	particle.use();
-	particle.getUniform("sprite").setInteger(0);
-	particle.getUniform("projection").setMatrix4(proj);
-	this->particles = std::make_unique<ParticleGen>(
-		particle,
+	// text shader and renderer
+	auto textShader = mShaders.get(ShaderID::Text);
+	textShader.use();
+	textShader.getUniform("projection").setMatrix4(proj);
+	text = std::make_unique<TextRenderer>(textShader);
+	text->Load("assets/fonts/ocraext.ttf", 24);
+
+	// set-up the effects
+	effects = std::make_unique<Postprocess>(
+		mShaders.get(ShaderID::Postprocess),
+		ScreenWidth,
+		ScreenHeight);
+
+	auto particleShader = mShaders.get(ShaderID::Particle);
+	particleShader.use();
+	particleShader.getUniform("sprite").setInteger(0);
+	particleShader.getUniform("projection").setMatrix4(proj);
+	particles = std::make_unique<ParticleGen>(
+		particleShader,
 		mTextures.get(TextureID::Particle),
 		500);
+}
+
+Game::~Game()
+{
+	glfwTerminate();
+}
+
+void
+Game::run()
+{
+	const std::uint64_t deltaTicks = glfwGetTimerFrequency() / targetFPS;
+	std::uint64_t currentTicks = glfwGetTimerValue();
+	std::uint64_t accumulator = 0;
+
+	while (!glfwWindowShouldClose(mWindow))
+	{
+		auto newTicks = glfwGetTimerValue();
+		accumulator += newTicks - currentTicks;
+		currentTicks = newTicks;
+
+		for (int steps = MaxStepsPerFrame;
+		     steps > 0 && accumulator >= deltaTicks;
+		     --steps, accumulator -= deltaTicks)
+		{
+			processInput();
+			Update(SecondsPerFrame);
+		}
+
+		glClearColor(0.f, 0.f, 0.2f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		Render();
+		glfwSwapBuffers(mWindow);
+	}
+}
+
+void
+Game::processInput()
+{
+	mEventQueue.poll();
+	Event event;
+	while (mEventQueue.pop(event))
+	{
+		switch (State)
+		{
+		case State::GAME_ACTIVE: {
+			if (const auto ep(std::get_if<KeyPressed>(&event)); ep)
+			{
+				switch (ep->key)
+				{
+				case GLFW_KEY_ESCAPE:
+					glfwSetWindowShouldClose(ep->window, GLFW_TRUE);
+					break;
+				default:
+					mKeys[ep->key] = GL_TRUE;
+					break;
+				}
+			}
+			else if (const auto ep(std::get_if<KeyReleased>(&event)); ep)
+			{
+				mKeys[ep->key] = GL_FALSE;
+			}
+			break;
+		}
+		case State::GAME_MENU: {
+			if (const auto ep(std::get_if<KeyPressed>(&event)); ep)
+			{
+				switch (ep->key)
+				{
+				case GLFW_KEY_ENTER:
+					State = State::GAME_ACTIVE;
+					break;
+				case GLFW_KEY_W:
+					Level = (Level + 1) % 4;
+					break;
+				case GLFW_KEY_S:
+					Level = (Level + 3) % 4;
+					break;
+				case GLFW_KEY_ESCAPE:
+					glfwSetWindowShouldClose(ep->window, GLFW_TRUE);
+					break;
+				}
+			}
+			break;
+		}
+		case State::GAME_WIN: {
+			if (const auto ep(std::get_if<KeyPressed>(&event)); ep)
+			{
+				switch (ep->key)
+				{
+				case GLFW_KEY_ENTER:
+					effects->Chaos = false;
+					State = State::GAME_MENU;
+					break;
+
+				case GLFW_KEY_ESCAPE:
+					glfwSetWindowShouldClose(ep->window, GLFW_TRUE);
+					break;
+				}
+			}
+			break;
+		}
+		}
+	}
 }
 
 void
@@ -102,7 +243,8 @@ Game::ResetLevel()
 {
 	if (0 <= this->Level && this->Level < 5) {
 		GameLevel level;
-		if (level.Load(mTextures, levels[this->Level], Width, Height / 2) < 0)
+		if (level.Load(mTextures, levels[this->Level],
+		               ScreenWidth, ScreenHeight / 2) < 0)
 			std::cerr << "Level '" << levels[this->Level] << "' error\n";
 		else
 			Levels[this->Level] = level;
@@ -115,8 +257,8 @@ Game::ResetPlayer()
 {
 	this->player->Size = PLAYER_SIZE;
 	this->player->Position = glm::vec2(
-		Width / 2 - PLAYER_SIZE.x / 2,
-		Height - PLAYER_SIZE.y);
+		ScreenWidth / 2 - PLAYER_SIZE.x / 2,
+		ScreenHeight - PLAYER_SIZE.y);
 	this->player->Color = glm::vec3(1.0f);
 	this->ball->Reset(
 		this->player->Position + glm::vec2(
@@ -133,7 +275,42 @@ Game::ResetPlayer()
 void
 Game::Update(GLfloat dt)
 {
-	this->ball->Move(dt, this->Width);
+	// update the paddle
+	if (State != State::GAME_ACTIVE)
+	{
+		return;
+	}
+	GLfloat vel = PLAYER_VELOCITY * dt;
+	if (mKeys[GLFW_KEY_A])
+	{
+		if (player->Position.x >= 0)
+		{
+			player->Position.x -= vel;
+			if (ball->Stuck)
+			{
+				ball->Position.x -= vel;
+			}
+		}
+	}
+
+	if (mKeys[GLFW_KEY_D])
+	{
+		if (player->Position.x <= ScreenWidth - this->player->Size.x)
+		{
+			player->Position.x += vel;
+			if (ball->Stuck)
+			{
+				ball->Position.x += vel;
+			}
+		}
+	}
+	if (mKeys[GLFW_KEY_SPACE])
+	{
+		ball->Stuck = false;
+	}
+
+	// update the ball
+	this->ball->Move(dt, ScreenWidth);
 	this->DoCollisions();
 
 	this->particles->Update(dt, *this->ball, 2, glm::vec2(this->ball->Radius/2.0f));
@@ -146,7 +323,7 @@ Game::Update(GLfloat dt)
 			this->effects->Shake = false;
 	}
 
-	if (this->ball->Position.y >= this->Height) {
+	if (this->ball->Position.y >= ScreenHeight) {
 		--this->Lives;
 		if (this->Lives == 0) {
 			this->ResetLevel();
@@ -163,93 +340,44 @@ Game::Update(GLfloat dt)
 	}
 }
 
-void
-Game::ProcessInput(GLfloat dt)
-{
-	if (this->State == State::GAME_ACTIVE) {
-		GLfloat vel = PLAYER_VELOCITY * dt;
-
-		if (Keys[GLFW_KEY_A]) {
-			if (this->player->Position.x >= 0) {
-				this->player->Position.x -= vel;
-				if (this->ball->Stuck)
-					this->ball->Position.x -= vel;
-			}
-		}
-
-		if (Keys[GLFW_KEY_D]) {
-			if (this->player->Position.x <= this->Width - this->player->Size.x) {
-				this->player->Position.x += vel;
-				if (this->ball->Stuck)
-					this->ball->Position.x += vel;
-			}
-		}
-
-		if (Keys[GLFW_KEY_SPACE])
-			this->ball->Stuck = false;
-	} else if (this->State == State::GAME_MENU) {
-		if (this->Keys[GLFW_KEY_ENTER] && !this->KeysProcessed[GLFW_KEY_ENTER]) {
-			this->State = State::GAME_ACTIVE;
-			this->KeysProcessed[GLFW_KEY_ENTER] = GL_TRUE;
-		}
-
-		if (this->Keys[GLFW_KEY_W] && !this->KeysProcessed[GLFW_KEY_W]) {
-			this->Level = (this->Level + 1) % 4;
-			this->KeysProcessed[GLFW_KEY_W] = GL_TRUE;
-		}
-
-		if (this->Keys[GLFW_KEY_S] && !this->KeysProcessed[GLFW_KEY_S]) {
-			if (this->Level > 0)
-				--this->Level;
-			else
-				this->Level = 3;
-			this->KeysProcessed[GLFW_KEY_S] = GL_TRUE;
-		}
-	} else if (this->State == State::GAME_WIN) {
-		if (this->Keys[GLFW_KEY_ENTER]) {
-			this->KeysProcessed[GLFW_KEY_ENTER] = GL_TRUE;
-			this->effects->Chaos = false;
-			this->State = State::GAME_MENU;
-		}
-	}
-}
-
 void Game::Render()
 {
 	if (this->State == State::GAME_ACTIVE || this->State == State::GAME_MENU) {
 		this->effects->BeginRender();
 
 		auto background = mTextures.get(TextureID::Background);
-		this->renderer->DrawSprite(background, glm::vec2(0.0f), glm::vec2(Width, Height), 0.0f);
-		Levels[Level].Draw(*this->renderer);
-		this->player->Draw(*this->renderer);
+		renderer->DrawSprite(background, glm::vec2(0.0f),
+		                           glm::vec2(ScreenWidth, ScreenHeight),
+		                           0.0f);
+		Levels[Level].Draw(*renderer);
+		player->Draw(*renderer);
 		for (PowerUP &p : this->PowerUPs) {
 			if (!p.Destroyed)
-				p.Draw(*this->renderer);
+				p.Draw(*renderer);
 		}
-		this->particles->Draw();
-		this->ball->Draw(*this->renderer);
+		particles->Draw();
+		ball->Draw(*renderer);
 
-		this->effects->EndRender();
-		this->effects->Render(glfwGetTime());
+		effects->EndRender();
+		effects->Render(glfwGetTime());
 
 		std::stringstream ss;
 		ss << "Lives: " << this->Lives;
-		this->text->RenderText(ss.str(), 5.0f, 5.0f, 1.0f);
+		text->RenderText(ss.str(), 5.0f, 5.0f, 1.0f);
 	}
 
-	if (this->State == State::GAME_MENU) {
-		this->text->RenderText("Press ENTER to start", 250.0f, Height / 2, 1.0f);
-		this->text->RenderText("Press W or S to select level", 245.0f, Height/2 + 20.0f, 0.75f);
+	if (State == State::GAME_MENU) {
+		text->RenderText("Press ENTER to start", 250.0f, ScreenHeight / 2, 1.0f);
+		text->RenderText("Press W or S to select level", 245.0f, ScreenHeight/2 + 20.0f, 0.75f);
 	}
 
-	if (this->State == State::GAME_WIN) {
-		this->text->RenderText(
-			"You WON!!!", 320.0f, Height / 2 - 20.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f)
+	if (State == State::GAME_WIN) {
+		text->RenderText(
+			"You WON!!!", 320.0f, ScreenHeight / 2 - 20.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f)
 			);
-		this->text->RenderText(
+		text->RenderText(
 			"Press ENTER to retry or ESC to quit",
-			130.0f, Height / 2, 1.0f, glm::vec3(1.0f, 1.0f, 0.0f)
+			130.0f, ScreenHeight / 2, 1.0f, glm::vec3(1.0f, 1.0f, 0.0f)
 			);
 	}
 }
@@ -397,7 +525,7 @@ Game::DoCollisions()
 	// Powerup collisions
 	for (PowerUP &p : this->PowerUPs) {
 		if (!p.Destroyed) {
-			if (p.Position.y >= this->Height)
+			if (p.Position.y >= ScreenHeight)
 				p.Destroyed = true;
 
 			if (CheckCollision(*this->player, p)) {

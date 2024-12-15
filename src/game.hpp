@@ -6,6 +6,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "eventqueue.hpp"
 #include "level.hpp"
 #include "powerup.hpp"
 #include "resources.hpp"
@@ -26,21 +27,19 @@ public:
 		GAME_WIN,
 	} State;
 
-	GLboolean Keys[1024];
-	GLboolean KeysProcessed[1024];
-	GLuint Width, Height;
-
 	std::vector<GameLevel> Levels;
 	std::vector<PowerUP> PowerUPs;
 
 	GLuint Level;
 	GLuint Lives;
 
-	Game(GLuint width, GLuint height);
+	Game();
 	~Game();
 
-	void Init();
-	void ProcessInput(GLfloat dt);
+	void run();
+	void processInput();
+
+	// void ProcessInput(GLfloat dt);
 	void Update(GLfloat dt);
 	void Render();
 
@@ -60,12 +59,16 @@ private:
 	std::unique_ptr<ParticleGen> particles;
 	std::unique_ptr<Postprocess> effects;
 	std::unique_ptr<TextRenderer> text;
+	float shakeTime;
 
 private:
 	void loadAssets();
 
+	GLFWwindow *mWindow;
+
+	EventQueue mEventQueue;
 	TextureHolder mTextures;
 	ShaderHolder mShaders;
 
-	float shakeTime;
+	bool mKeys[1024];
 };

@@ -13,6 +13,7 @@ asset_link = custom_target(
 executable(
   'breakout', [
     'ball.cpp',
+    'eventqueue.cpp',
     'game.cpp',
     'gameobject.cpp',
     'glcheck.cpp',
