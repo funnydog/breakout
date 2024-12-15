@@ -9,7 +9,7 @@
 class ShaderUniform
 {
 public:
-	explicit ShaderUniform(unsigned value) : mUniform(value) {}
+	explicit ShaderUniform(unsigned value) : mLocation(value) {}
 
 	void setFloat(GLfloat value) const noexcept;
 	void setFloat1fv(const GLfloat *floats, size_t size) const noexcept;
@@ -32,7 +32,7 @@ public:
 	void setMatrix4(const glm::mat4 &value) const noexcept;
 
 private:
-	unsigned mUniform;
+	unsigned mLocation;
 };
 
 class ShaderAttrib
