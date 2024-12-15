@@ -26,6 +26,7 @@ executable(
     'stb_image.cpp',
     'text.cpp',
     'texture.cpp',
+    'utility.cpp',
     asset_link,
   ],
   dependencies : deps,
