@@ -646,7 +646,6 @@ Game::loadAssets()
 	mShaders.load(ShaderID::Sprite,
 	              "assets/shaders/sprite.vs",
 	              "assets/shaders/sprite.fs");
-
 	mShaders.load(ShaderID::Text,
 	              "assets/shaders/text.vs",
 	              "assets/shaders/text.fs");
