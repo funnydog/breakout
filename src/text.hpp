@@ -1,5 +1,4 @@
-#ifndef TEXT_H
-#define TEXT_H
+#pragma once
 
 #include <map>
 
@@ -32,5 +31,3 @@ public:
 private:
 	GLuint VAO, VBO;
 };
-
-#endif

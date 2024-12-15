@@ -1,5 +1,4 @@
-#ifndef TEXTURE_H
-#define TEXTURE_H
+#pragma once
 
 #include <filesystem>
 #include <GL/glew.h>
@@ -22,5 +21,3 @@ public:
 private:
 	GLuint glHandle;
 };
-
-#endif

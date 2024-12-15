@@ -1,5 +1,4 @@
-#ifndef GAMEOBJECT_H
-#define GAMEOBJECT_H
+#pragma once
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -25,5 +24,3 @@ public:
 
 	virtual void Draw(SpriteRenderer &renderer);
 };
-
-#endif

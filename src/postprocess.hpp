@@ -1,5 +1,4 @@
-#ifndef POSTPROCESS_H
-#define POSTPROCESS_H
+#pragma once
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -33,5 +32,3 @@ private:
 	GLuint RBO;
 	GLuint VAO;
 };
-
-#endif

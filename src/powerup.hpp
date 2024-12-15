@@ -1,5 +1,4 @@
-#ifndef POWERUP_H
-#define POWERUP_H
+#pragma once
 
 #include <string>
 #include <GL/glew.h>
@@ -31,5 +30,3 @@ public:
 		Activated(false)
 	{}
 };
-
-#endif

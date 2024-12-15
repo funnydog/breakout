@@ -1,5 +1,4 @@
-#ifndef PARTICLE_H
-#define PARTICLE_H
+#pragma once
 
 #include <vector>
 #include <GL/glew.h>
@@ -38,5 +37,3 @@ private:
 	GLuint firstUnusedParticle();
 	void respawnParticle(Particle &particle, GameObject &obj, glm::vec2 offset = glm::vec2(0.0f));
 };
-
-#endif

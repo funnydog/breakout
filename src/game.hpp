@@ -1,5 +1,4 @@
-#ifndef GAME_H
-#define GAME_H
+#pragma once
 
 #include <vector>
 #include <memory>
@@ -70,5 +69,3 @@ private:
 
 	float shakeTime;
 };
-
-#endif

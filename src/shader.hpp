@@ -1,5 +1,4 @@
-#ifndef SHADER_H
-#define SHADER_H
+#pragma once
 
 #include <filesystem>
 
@@ -74,5 +73,3 @@ public:
 private:
 	unsigned mProgram = 0;
 };
-
-#endif

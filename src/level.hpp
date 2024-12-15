@@ -1,5 +1,4 @@
-#ifndef GAMELEVEL_H
-#define GAMELEVEL_H
+#pragma once
 
 #include <vector>
 
@@ -20,5 +19,3 @@ public:
 	void Draw(SpriteRenderer &renderer);
 	bool IsCompleted();
 };
-
-#endif

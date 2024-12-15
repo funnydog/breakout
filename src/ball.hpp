@@ -1,5 +1,4 @@
-#ifndef BALL_H
-#define BALL_H
+#pragma once
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
@@ -22,5 +21,3 @@ public:
 
 	void Reset(glm::vec2 pos, glm::vec2 vel);
 };
-
-#endif
