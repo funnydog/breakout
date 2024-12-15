@@ -100,7 +100,7 @@ ResourceManager::Clear()
 	}
 
 	for (auto &t: Textures) {
-		t.second.Destroy();
+		t.second.destroy();
 	}
 }
 

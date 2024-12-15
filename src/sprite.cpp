@@ -52,7 +52,7 @@ SpriteRenderer::DrawSprite(Texture2D &texture, glm::vec2 position, glm::vec2 siz
 	shader.GetUniform("spriteColor").SetVector3f(color);
 
 	glActiveTexture(GL_TEXTURE0);
-	texture.Bind();
+	texture.bind();
 
 	glBindVertexArray(quadVAO);
 	glDrawArrays(GL_TRIANGLES, 0, 6);

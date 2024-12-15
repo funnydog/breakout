@@ -60,7 +60,7 @@ ParticleGen::Draw()
 
 		this->shader.GetUniform("offset").SetVector2f(p.Position);
 		this->shader.GetUniform("color").SetVector4f(p.Color);
-		this->texture.Bind();
+		this->texture.bind();
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 	glBindVertexArray(0);

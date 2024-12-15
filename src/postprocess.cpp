@@ -20,7 +20,7 @@ Postprocess::Postprocess(Shader const& shader, unsigned width, unsigned height) 
 	glBindFramebuffer(GL_FRAMEBUFFER, this->FBO);
         // TODO: check the return value
 	this->Texture.create(width, height);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->Texture.GetHandle(), 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->Texture.getHandle(), 0);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cerr << "ERROR::Postprocess: Failed to initialize FBO\n";
 
@@ -106,7 +106,7 @@ Postprocess::Render(float time)
 	this->PostProcessingShader.GetUniform("shake").SetInteger(this->Shake);
 
 	glActiveTexture(GL_TEXTURE0);
-	this->Texture.Bind();
+	this->Texture.bind();
 	glBindVertexArray(this->VAO);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);

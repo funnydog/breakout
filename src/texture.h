@@ -17,27 +17,14 @@ public:
 	Texture2D& operator=(Texture2D &&other) noexcept;
 
 	bool loadFromFile(const std::filesystem::path &path);
-
 	bool create(unsigned width, unsigned height,
 	            const void *pixels=nullptr,
 	            bool repeat=false, bool smooth=false) noexcept;
 
-	void Destroy() noexcept;
+	void destroy() noexcept;
+	void bind() const noexcept;
 
-	void GetSize(GLint &width, GLint &height) const noexcept;
-	GLint GetWidth() const noexcept;
-	GLint GetHeight() const noexcept;
-
-	GLint GetInternalFormat() const noexcept;
-
-	void SetWrapS(GLint wraps) const noexcept;
-	void SetWrapT(GLint wrapt) const noexcept;
-	void SetMinFilter(GLint minfilter) const noexcept;
-	void SetMagFilter(GLint magfilter) const noexcept;
-
-	void Bind() const noexcept;
-
-	GLuint GetHandle() const noexcept { return glHandle; }
+	GLuint getHandle() const noexcept { return glHandle; }
 
 private:
 	GLuint glHandle;
