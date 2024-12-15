@@ -5,29 +5,8 @@
 #include "stb_image.h"
 
 Texture2D::Texture2D()
-	: glHandle(0)
+	: glHandle(-1U)
 {
-}
-
-Texture2D::~Texture2D()
-{
-	// if (glHandle)
-	// {
-	// 	glCheck(glDeleteTextures(1, &glHandle));
-	// }
-}
-
-Texture2D::Texture2D(Texture2D&& other) noexcept
-	: glHandle(0)
-{
-	std::swap(glHandle, other.glHandle);
-}
-
-Texture2D&
-Texture2D::operator=(Texture2D&& other) noexcept
-{
-	std::swap(glHandle, other.glHandle);
-	return *this;
 }
 
 bool
@@ -37,13 +16,18 @@ Texture2D::loadFromFile(const std::filesystem::path &path)
 	auto *pixels = stbi_load(path.c_str(), &width, &height, &channels, 4);
 	if (pixels == nullptr)
 	{
-		std::cerr << "Texture2D::loadFromFile - Cannot load " << path.string()
+		std::cerr << "Texture2D::loadFromFile() - Cannot load " << path.string()
 		          << std::endl;
 		return false;
 	}
 
 	bool result = create(width, height, pixels);
 	stbi_image_free(pixels);
+	if (!result)
+	{
+		std::cerr << "Texture2D::loadFromFile() - unable to generate the texture "
+		          << path.string() << std::endl;
+	}
 	return result;
 }
 
@@ -57,7 +41,7 @@ Texture2D::create(unsigned width, unsigned height, const void *pixels, bool repe
 		return false;
 	}
 
-	if (!glHandle)
+	if (glHandle == -1U)
 	{
 		glCheck(glGenTextures(1, &glHandle));
 	}
@@ -87,12 +71,15 @@ Texture2D::create(unsigned width, unsigned height, const void *pixels, bool repe
 void
 Texture2D::destroy() noexcept
 {
-	glDeleteTextures(1, &this->glHandle);
-	this->glHandle = 0;
+	if (glHandle != -1U)
+	{
+		glDeleteTextures(1, &glHandle);
+		glHandle = -1U;
+	}
 }
 
 void
 Texture2D::bind() const noexcept
 {
-	glBindTexture(GL_TEXTURE_2D, this->glHandle);
+	glBindTexture(GL_TEXTURE_2D, glHandle);
 }
