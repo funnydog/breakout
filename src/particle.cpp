@@ -52,14 +52,14 @@ ParticleGen::Draw()
 {
 	// additive blending for glow effect
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	this->shader.Use();
+	shader.use();
 	glBindVertexArray(this->VAO);
 	for (Particle &p : this->particles) {
 		if (p.Life <= 0.0f)
 			continue;
 
-		this->shader.GetUniform("offset").SetVector2f(p.Position);
-		this->shader.GetUniform("color").SetVector4f(p.Color);
+		this->shader.getUniform("offset").setVector2f(p.Position);
+		this->shader.getUniform("color").setVector4f(p.Color);
 		this->texture.bind();
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}

@@ -91,27 +91,27 @@ void Game::Init()
 		);
 
 	auto &sprite = ResourceManager::GetShader("sprite");
-	sprite.Use();
-	sprite.GetUniform("image").SetInteger(0);
+	sprite.use();
+	sprite.getUniform("image").setInteger(0);
 
 	glm::mat4 proj = glm::ortho(
 		0.0f, static_cast<GLfloat>(this->Width),
 		static_cast<GLfloat>(this->Height), 0.0f,
 		-1.0f, 1.0f);
-	sprite.GetUniform("projection").SetMatrix4(proj);
+	sprite.getUniform("projection").setMatrix4(proj);
 
 	this->renderer = std::make_unique<SpriteRenderer>(sprite);
 
 	auto &text = ResourceManager::GetShader("text");
-	text.Use();
-	text.GetUniform("projection").SetMatrix4(proj);
+	text.use();
+	text.getUniform("projection").setMatrix4(proj);
 	this->text = std::make_unique<TextRenderer>(text);
 	this->text->Load("assets/fonts/ocraext.ttf", 24);
 
 	auto &particle = ResourceManager::GetShader("particle");
-	particle.Use();
-	particle.GetUniform("sprite").SetInteger(0);
-	particle.GetUniform("projection").SetMatrix4(proj);
+	particle.use();
+	particle.getUniform("sprite").setInteger(0);
+	particle.getUniform("projection").setMatrix4(proj);
 	this->particles = std::make_unique<ParticleGen>(
 		particle,
 		ResourceManager::GetTexture("particle"),

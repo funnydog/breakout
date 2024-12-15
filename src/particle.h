@@ -29,7 +29,7 @@ public:
 private:
 	std::vector<Particle> particles;
 
-	Shader const& shader;
+	Shader shader;
 	Texture2D texture;
 	GLuint amount;
 	GLuint VAO;

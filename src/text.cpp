@@ -10,8 +10,8 @@
 TextRenderer::TextRenderer(Shader const& s)
 	: TextShader(s)
 {
-	this->TextShader.Use();
-	this->TextShader.GetUniform("text").SetInteger(0);
+	this->TextShader.use();
+	this->TextShader.getUniform("text").setInteger(0);
 
 	glGenVertexArrays(1, &this->VAO);
 	glBindVertexArray(this->VAO);
@@ -88,8 +88,8 @@ TextRenderer::Load(std::string font, GLuint fontSize)
 void
 TextRenderer::RenderText(std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color)
 {
-	this->TextShader.Use();
-	this->TextShader.GetUniform("textColor").SetVector3f(color);
+	this->TextShader.use();
+	this->TextShader.getUniform("textColor").setVector3f(color);
 	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(this->VAO);
 

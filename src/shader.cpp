@@ -1,122 +1,160 @@
 #include <cstdlib>
 #include <iostream>
 
+#include "glcheck.hpp"
+
 #include <glm/gtc/type_ptr.hpp>
 
 #include "shader.h"
+#include "utility.hpp"
 
 void
-ShaderUniform::SetFloat(GLfloat value) const noexcept
+ShaderUniform::setFloat(GLfloat value) const noexcept
 {
-	glUniform1f(this->glHandle, value);
+	glUniform1f(mUniform, value);
 }
 
 void
-ShaderUniform::SetFloat1fv(const GLfloat *floats, size_t size) const noexcept
+ShaderUniform::setFloat1fv(const GLfloat *floats, size_t size) const noexcept
 {
-	glUniform1fv(this->glHandle, size, floats);
+	glUniform1fv(mUniform, size, floats);
 }
 
 void
-ShaderUniform::SetInteger(GLint value) const noexcept
+ShaderUniform::setInteger(GLint value) const noexcept
 {
-	glUniform1i(this->glHandle, value);
+	glUniform1i(mUniform, value);
 }
 
 void
-ShaderUniform::SetInteger1iv(const GLint *ints, size_t size) const noexcept
+ShaderUniform::setInteger1iv(const GLint *ints, size_t size) const noexcept
 {
-	glUniform1iv(this->glHandle, size, ints);
+	glUniform1iv(mUniform, size, ints);
 }
 
 void
-ShaderUniform::SetVector2f(GLfloat x, GLfloat y) const noexcept
+ShaderUniform::setVector2f(GLfloat x, GLfloat y) const noexcept
 {
-	glUniform2f(this->glHandle, x, y);
+	glUniform2f(mUniform, x, y);
 }
 
 void
-ShaderUniform::SetVector2f(const glm::vec2 &value) const noexcept
+ShaderUniform::setVector2f(const glm::vec2 &value) const noexcept
 {
-	glUniform2fv(this->glHandle, 1, glm::value_ptr(value));
+	glUniform2fv(mUniform, 1, glm::value_ptr(value));
 }
 
 void
-ShaderUniform::SetVector2fv(const GLfloat floats[][2], size_t size) const noexcept
+ShaderUniform::setVector2fv(const GLfloat floats[][2], size_t size) const noexcept
 {
-	glUniform2fv(this->glHandle, size, floats[0]);
+	glUniform2fv(mUniform, size, floats[0]);
 }
 
 void
-ShaderUniform::SetVector3f(GLfloat x, GLfloat y, GLfloat z) const noexcept
+ShaderUniform::setVector3f(GLfloat x, GLfloat y, GLfloat z) const noexcept
 {
-	glUniform3f(this->glHandle, x, y, z);
+	glUniform3f(mUniform, x, y, z);
 }
 
 void
-ShaderUniform::SetVector3f(const glm::vec3 &value) const noexcept
+ShaderUniform::setVector3f(const glm::vec3 &value) const noexcept
 {
-	glUniform3fv(this->glHandle, 1, glm::value_ptr(value));
+	glUniform3fv(mUniform, 1, glm::value_ptr(value));
 }
 
 void
-ShaderUniform::SetVector3fv(const GLfloat floats[][3], size_t size) const noexcept
+ShaderUniform::setVector3fv(const GLfloat floats[][3], size_t size) const noexcept
 {
-	glUniform3fv(this->glHandle, size, floats[0]);
+	glUniform3fv(mUniform, size, floats[0]);
 }
 
 void
-ShaderUniform::SetVector4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w) const noexcept
+ShaderUniform::setVector4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w) const noexcept
 {
-	glUniform4f(this->glHandle, x, y, z, w);
+	glUniform4f(mUniform, x, y, z, w);
 }
 
 void
-ShaderUniform::SetVector4f(const glm::vec4 &value) const noexcept
+ShaderUniform::setVector4f(const glm::vec4 &value) const noexcept
 {
-	glUniform4fv(this->glHandle, 1, glm::value_ptr(value));
+	glUniform4fv(mUniform, 1, glm::value_ptr(value));
 }
 
 void
-ShaderUniform::SetVector4fv(const GLfloat floats[][4], size_t size) const noexcept
+ShaderUniform::setVector4fv(const GLfloat floats[][4], size_t size) const noexcept
 {
-	glUniform4fv(this->glHandle, size, floats[0]);
+	glUniform4fv(mUniform, size, floats[0]);
 }
 
 void
-ShaderUniform::SetMatrix4(const glm::mat4 &value) const noexcept
+ShaderUniform::setMatrix4(const glm::mat4 &value) const noexcept
 {
-	glUniformMatrix4fv(this->glHandle, 1, GL_FALSE, glm::value_ptr(value));
+	glUniformMatrix4fv(mUniform, 1, GL_FALSE, glm::value_ptr(value));
 }
 
-int
-Shader::Create()
+bool
+Shader::loadFromFile(const std::filesystem::path &vs,
+                     const std::filesystem::path &fs) noexcept
 {
-	this->ID = glCreateProgram();
-	if (this->ID == 0)
+	if (!mProgram)
 	{
-		return -1;
+		mProgram = glCreateProgram();
 	}
 
-	return 0;
+	if (!attachFile(Type::VERTEX, vs.c_str()))
+	{
+		std::cerr << "Shader::loadFromFile() - cannot load "
+		          << vs.string() << std::endl;
+		return false;
+	}
+	if (!attachFile(Type::FRAGMENT, fs.c_str()))
+	{
+		std::cerr << "Shader::loadFromFile() - cannot load "
+		          << fs.string() << std::endl;
+		return false;
+	}
+	if (!link())
+	{
+		std::cerr << "Shader::loadFromFile() - link failed\n";
+		return false;
+	}
+
+	return true;
+}
+
+bool
+Shader::create()
+{
+	mProgram = glCreateProgram();
+	if (!mProgram)
+	{
+		return false;
+	}
+	return true;
 }
 
 void
-Shader::Destroy()
+Shader::destroy()
 {
-	glDeleteProgram(this->ID);
-	this->ID = 0;
+	glDeleteProgram(mProgram);
+	mProgram = 0;
 }
 
 void
-Shader::Use() const
+Shader::use() const noexcept
 {
-	glUseProgram(ID);
+	glUseProgram(mProgram);
 }
 
-int
-Shader::Attach(Shader::Type type, const char *source) const
+bool
+Shader::attachString(Shader::Type type, const std::string &source) const noexcept
 {
+	if (!mProgram)
+	{
+		std::cerr << "Shader::attachString() - undefined program\n";
+		return false;
+	}
+
 	GLenum gltype;
 	switch (type)
 	{
@@ -125,91 +163,78 @@ Shader::Attach(Shader::Type type, const char *source) const
 	case Type::GEOMETRY: gltype = GL_GEOMETRY_SHADER; break;
 	case Type::COMPUTE:  gltype = GL_COMPUTE_SHADER;  break;
 	default:
-		return -1;
+		std::cerr << "Shader::attachString() - undefined shader type"
+		          << static_cast<int>(type) << "\n";
+		return false;
 	}
 
 	GLuint shader = glCreateShader(gltype);
-	if (shader == 0)
-	{
-		return -1;
-	}
+	const char *src = source.c_str();
+	glCheck(glShaderSource(shader, 1, &src, nullptr));
+	glCheck(glCompileShader(shader));
 
-	glShaderSource(shader, 1, &source, NULL);
-	glCompileShader(shader);
-	if (checkShaderCompilation(shader) < 0)
+	GLint success;
+	glCheck(glGetShaderiv(shader, GL_COMPILE_STATUS, &success));
+	if (!success)
 	{
-		glDeleteShader(shader);
-		return -1;
+		GLint length;
+		glCheck(glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length));
+		std::string message(length, 0);
+		glCheck(glGetShaderInfoLog(shader, length, nullptr, message.data()));
+		glCheck(glDeleteShader(shader));
+		std::cerr << "Shader::attachString() - compilation failed\n"
+		          << message << "\n";
+		return false;
 	}
-
-	glAttachShader(this->ID, shader);
-	glDeleteShader(shader);
-	return 0;
+	glCheck(glAttachShader(mProgram, shader));
+	glCheck(glDeleteShader(shader));
+	return true;
 }
 
-int
-Shader::Link() const
+bool
+Shader::attachFile(Shader::Type type, const std::filesystem::path &path) const
 {
-	glLinkProgram(this->ID);
-	return checkProgramLinkage(this->ID);
+	return attachString(type, Utility::loadFile(path));
+}
+
+bool
+Shader::link() const noexcept
+{
+	glCheck(glLinkProgram(mProgram));
+
+	GLint success;
+	glCheck(glGetProgramiv(mProgram, GL_LINK_STATUS, &success));
+	if (!success)
+	{
+		GLint length;
+		glCheck(glGetProgramiv(mProgram, GL_INFO_LOG_LENGTH, &length));
+		std::string message(length, 0);
+		glCheck(glGetProgramInfoLog(mProgram, length, nullptr, message.data()));
+		std::cerr << "Shader::link() - link failed\n"
+		          << message << "\n";
+		return false;
+	}
+	return true;
 }
 
 ShaderUniform
-Shader::GetUniform(const char *name) const
+Shader::getUniform(const std::string& name) const
 {
-	GLint loc = glGetUniformLocation(this->ID, name);
+	GLint loc = glGetUniformLocation(mProgram, name.c_str());
 	if (loc == -1)
 	{
-		std::cerr << "SHADER: Cannot find the location of uniform '" << name << "'\n";
-		std::abort();
+		throw std::runtime_error("Shader::getUniform(\"" + name + "\") failed");
 	}
 	return ShaderUniform(loc);
 }
 
 ShaderAttrib
-Shader::GetAttrib(const char *name) const
+Shader::getAttrib(const std::string& name) const
 {
-	GLint loc = glGetAttribLocation(this->ID, name);
+	GLint loc = glGetAttribLocation(this->mProgram, name.c_str());
 	if (loc == -1)
 	{
-		std::cerr << "SHADER: Cannot find the location of attrib '" << name << "'\n";
-		std::abort();
+		throw std::runtime_error("Shader::getAttrib(\"" + name + "\") failed");
 	}
 	return ShaderAttrib(loc);
-}
-
-int
-Shader::checkShaderCompilation(GLuint object)
-{
-	GLint success;
-	GLchar infoLog[1024];
-	glGetShaderiv(object, GL_COMPILE_STATUS, &success);
-	if (!success)
-	{
-		glGetShaderInfoLog(object, sizeof(infoLog), NULL, infoLog);
-		std::cerr << "| ERROR::SHADER: Compile-time error: SHADER|\n"
-			  << "+------------------------------------------+\n"
-			  << infoLog << "\n"
-			  << "+------------------------------------------+\n";
-		return -1;
-	}
-	return 0;
-}
-
-int
-Shader::checkProgramLinkage(GLuint object)
-{
-	GLint success;
-	GLchar infoLog[1024];
-	glGetProgramiv(object, GL_LINK_STATUS, &success);
-	if (!success)
-	{
-		glGetProgramInfoLog(object, sizeof(infoLog), NULL, infoLog);
-		std::cerr << "| ERROR::Shader: Link-time error: Type PROGRAM|\n"
-			  << "+---------------------------------------------+\n"
-			  << infoLog << "\n"
-			  << "+---------------------------------------------+\n";
-		return -1;
-	}
-	return 0;
 }

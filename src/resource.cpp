@@ -12,42 +12,43 @@ int
 ResourceManager::LoadShader(std::string name, const char *vpath, const char *fpath, const char *gpath)
 {
 	Shader shader;
-	if (shader.Create() < 0) {
+	if (!shader.create()) {
 		std::cerr << "SHADER PROGRAM:\n";
 		return -1;
 	}
 
 	std::string text;
 	if (loadText(vpath, text) < 0
-	    || shader.Attach(Shader::Type::VERTEX, text.c_str()) < 0) {
+	    || !shader.attachString(Shader::Type::VERTEX, text)) {
 		std::cerr << "VERTEX SHADER: " << vpath << "\n";
-		shader.Destroy();
+		shader.destroy();
 		return -1;
 	}
 
 	if (loadText(fpath, text) < 0
-	    || shader.Attach(Shader::Type::FRAGMENT, text.c_str()) < 0) {
+	    || !shader.attachString(Shader::Type::FRAGMENT, text))
+	{
 		std::cerr << "FRAGMENT SHADER: " << fpath << "\n";
-		shader.Destroy();
+		shader.destroy();
 		return -1;
 	}
 
 	if (gpath != nullptr && (loadText(gpath, text) < 0 ||
-				 shader.Attach(Shader::Type::GEOMETRY, text.c_str()) < 0)) {
+	                         !shader.attachString(Shader::Type::GEOMETRY, text))) {
 		std::cerr << "GEOMETRY SHADER: " << gpath << "\n";
-		shader.Destroy();
+		shader.destroy();
 		return -1;
 	}
 
-	if (shader.Link() < 0) {
+	if (!shader.link()) {
 		std::cerr << "SHADER PROGRAM: Link error\n";
-		shader.Destroy();
+		shader.destroy();
 		return -1;
 	}
 
 	if (Shaders.find(name) != Shaders.end()) {
 		std::cerr << "SHADER '" << name << "' ALREADY LOADED\n";
-		shader.Destroy();
+		shader.destroy();
 		return -1;
 	}
 
@@ -96,7 +97,7 @@ void
 ResourceManager::Clear()
 {
 	for (auto &s: Shaders) {
-		s.second.Destroy();
+		s.second.destroy();
 	}
 
 	for (auto &t: Textures) {

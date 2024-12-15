@@ -57,8 +57,6 @@ int main(int argc, char *argv[])
 		glfwSwapBuffers(win);
 	}
 
-	ResourceManager::Clear();
-
 	glfwTerminate();
 	return 0;
 }

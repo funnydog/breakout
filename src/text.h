@@ -22,7 +22,7 @@ class TextRenderer
 public:
 	std::map<GLchar, Character> Characters;
 
-	Shader const& TextShader;
+	Shader TextShader;
 
 	explicit TextRenderer(Shader const& s);
 

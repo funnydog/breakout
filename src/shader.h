@@ -1,36 +1,38 @@
 #ifndef SHADER_H
 #define SHADER_H
 
+#include <filesystem>
+
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
 class ShaderUniform
 {
 public:
-	explicit ShaderUniform(GLint value) : glHandle(value) {}
+	explicit ShaderUniform(unsigned value) : mUniform(value) {}
 
-	void SetFloat(GLfloat value) const noexcept;
-	void SetFloat1fv(const GLfloat *floats, size_t size) const noexcept;
+	void setFloat(GLfloat value) const noexcept;
+	void setFloat1fv(const GLfloat *floats, size_t size) const noexcept;
 
-	void SetInteger(GLint value) const noexcept;
-	void SetInteger1iv(const GLint *ints, size_t size) const noexcept;
+	void setInteger(GLint value) const noexcept;
+	void setInteger1iv(const GLint *ints, size_t size) const noexcept;
 
-	void SetVector2f(GLfloat x, GLfloat y) const noexcept;
-	void SetVector2f(const glm::vec2 &value) const noexcept;
-	void SetVector2fv(const GLfloat floats[][2], size_t size) const noexcept;
+	void setVector2f(GLfloat x, GLfloat y) const noexcept;
+	void setVector2f(const glm::vec2 &value) const noexcept;
+	void setVector2fv(const GLfloat floats[][2], size_t size) const noexcept;
 
-	void SetVector3f(GLfloat x, GLfloat y, GLfloat z) const noexcept;
-	void SetVector3f(const glm::vec3 &value) const noexcept;
-	void SetVector3fv(const GLfloat floats[][3], size_t size) const noexcept;
+	void setVector3f(GLfloat x, GLfloat y, GLfloat z) const noexcept;
+	void setVector3f(const glm::vec3 &value) const noexcept;
+	void setVector3fv(const GLfloat floats[][3], size_t size) const noexcept;
 
-	void SetVector4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w) const noexcept;
-	void SetVector4f(const glm::vec4 &value) const noexcept;
-	void SetVector4fv(const GLfloat floats[][4], size_t size) const noexcept;
+	void setVector4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w) const noexcept;
+	void setVector4f(const glm::vec4 &value) const noexcept;
+	void setVector4fv(const GLfloat floats[][4], size_t size) const noexcept;
 
-	void SetMatrix4(const glm::mat4 &value) const noexcept;
+	void setMatrix4(const glm::mat4 &value) const noexcept;
 
 private:
-	GLint glHandle;
+	unsigned mUniform;
 };
 
 class ShaderAttrib
@@ -55,21 +57,22 @@ public:
 		COMPUTE,
 	};
 
-	int  Create();
-	void Destroy();
+	bool loadFromFile(const std::filesystem::path &vs,
+	                  const std::filesystem::path &fs) noexcept;
 
-	void Use() const;
-	int  Attach(Shader::Type type, const char *source) const;
-	int  Link() const;
+	bool create();
+	void destroy();
 
-	ShaderUniform GetUniform(const char *name) const;
-	ShaderAttrib GetAttrib(const char *name) const;
+	void use() const noexcept;
+	bool attachFile(Shader::Type type, const std::filesystem::path &path) const;
+	bool attachString(Shader::Type type, const std::string& source) const noexcept;
+	bool link() const noexcept;
+
+	ShaderUniform getUniform(const std::string& name) const;
+	ShaderAttrib getAttrib(const std::string& name) const;
 
 private:
-	static int checkShaderCompilation(GLuint object);
-	static int checkProgramLinkage(GLuint object);
-
-	GLuint ID = 0;
+	unsigned mProgram = 0;
 };
 
 #endif

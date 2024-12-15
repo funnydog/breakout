@@ -46,8 +46,8 @@ Postprocess::Postprocess(Shader const& shader, unsigned width, unsigned height) 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	this->PostProcessingShader.Use();
-	this->PostProcessingShader.GetUniform("scene").SetInteger(0);
+	this->PostProcessingShader.use();
+	this->PostProcessingShader.getUniform("scene").setInteger(0);
 	GLfloat offset = 1.0f / 300.0f;
 	const GLfloat offsets[][2] = {
 		{ -offset,  offset },
@@ -60,21 +60,21 @@ Postprocess::Postprocess(Shader const& shader, unsigned width, unsigned height) 
 		{    0.0f, -offset },
 		{  offset, -offset },
 	};
-	this->PostProcessingShader.GetUniform("offsets").SetVector2fv(offsets, 9);
+	this->PostProcessingShader.getUniform("offsets").setVector2fv(offsets, 9);
 
 	GLint edge_kernel[9] = {
 		-1, -1, -1,
 		-1,  8, -1,
 		-1, -1, -1,
 	};
-	this->PostProcessingShader.GetUniform("edge_kernel").SetInteger1iv(edge_kernel, 9);
+	this->PostProcessingShader.getUniform("edge_kernel").setInteger1iv(edge_kernel, 9);
 
 	GLfloat blur_kernel[9] = {
 		1.0f / 16.0f, 2.0f / 16.0f, 1.0f / 16.0f,
 		2.0f / 16.0f, 4.0f / 16.0f, 2.0f / 16.0f,
 		1.0f / 16.0f, 2.0f / 16.0f, 1.0f / 16.0f,
 	};
-	this->PostProcessingShader.GetUniform("blur_kernel").SetFloat1fv(blur_kernel, 9);
+	this->PostProcessingShader.getUniform("blur_kernel").setFloat1fv(blur_kernel, 9);
 }
 
 void
@@ -99,11 +99,11 @@ Postprocess::EndRender()
 void
 Postprocess::Render(float time)
 {
-	this->PostProcessingShader.Use();
-	this->PostProcessingShader.GetUniform("time").SetFloat(time);
-	this->PostProcessingShader.GetUniform("confuse").SetInteger(this->Confuse);
-	this->PostProcessingShader.GetUniform("chaos").SetInteger(this->Chaos);
-	this->PostProcessingShader.GetUniform("shake").SetInteger(this->Shake);
+	this->PostProcessingShader.use();
+	this->PostProcessingShader.getUniform("time").setFloat(time);
+	this->PostProcessingShader.getUniform("confuse").setInteger(this->Confuse);
+	this->PostProcessingShader.getUniform("chaos").setInteger(this->Chaos);
+	this->PostProcessingShader.getUniform("shake").setInteger(this->Shake);
 
 	glActiveTexture(GL_TEXTURE0);
 	this->Texture.bind();

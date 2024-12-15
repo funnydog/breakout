@@ -47,9 +47,9 @@ SpriteRenderer::DrawSprite(Texture2D &texture, glm::vec2 position, glm::vec2 siz
 	model = glm::translate(model, glm::vec3(-0.5f * size.x, -0.5f * size.y, 0.0f));
 	model = glm::scale(model, glm::vec3(size, 1.0f));
 
-	shader.Use();
-	shader.GetUniform("model").SetMatrix4(model);
-	shader.GetUniform("spriteColor").SetVector3f(color);
+	shader.use();
+	shader.getUniform("model").setMatrix4(model);
+	shader.getUniform("spriteColor").setVector3f(color);
 
 	glActiveTexture(GL_TEXTURE0);
 	texture.bind();
