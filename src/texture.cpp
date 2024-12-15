@@ -73,7 +73,7 @@ Texture2D::destroy() noexcept
 {
 	if (glHandle != -1U)
 	{
-		glDeleteTextures(1, &glHandle);
+		glCheck(glDeleteTextures(1, &glHandle));
 		glHandle = -1U;
 	}
 }
@@ -81,5 +81,5 @@ Texture2D::destroy() noexcept
 void
 Texture2D::bind() const noexcept
 {
-	glBindTexture(GL_TEXTURE_2D, glHandle);
+	glCheck(glBindTexture(GL_TEXTURE_2D, glHandle));
 }
