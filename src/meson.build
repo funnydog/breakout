@@ -18,6 +18,7 @@ executable(
     'ball.cpp',
     'game.cpp',
     'gameobject.cpp',
+    'glcheck.cpp',
     'level.cpp',
     'main.cpp',
     'particle.cpp',

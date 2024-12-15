@@ -3,7 +3,7 @@ project(
   version : '0.1',
   default_options : [
     'warning_level=1',
-    'cpp_std=c++14'
+    'cpp_std=c++17',
   ])
 
 subdir('src')
