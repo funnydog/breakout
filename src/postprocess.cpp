@@ -18,7 +18,8 @@ Postprocess::Postprocess(Shader const& shader, unsigned width, unsigned height) 
 		std::cerr << "ERROR::Postprocess: Failed to initialize MSFBO\n";
 
 	glBindFramebuffer(GL_FRAMEBUFFER, this->FBO);
-	this->Texture.Generate(width, height, GL_RGB, GL_RGB, NULL);
+        // TODO: check the return value
+	this->Texture.create(width, height);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->Texture.GetHandle(), 0);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cerr << "ERROR::Postprocess: Failed to initialize FBO\n";

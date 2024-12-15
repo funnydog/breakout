@@ -1,14 +1,27 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
+#include <filesystem>
 #include <GL/glew.h>
 
 class Texture2D
 {
 public:
-	Texture2D() : glHandle(0) {}
+	Texture2D();
+	~Texture2D();
 
-	void Generate(GLuint width, GLuint height, GLint ifmt, GLint dfmt, void *data) noexcept;
+	Texture2D(const Texture2D &other) = default;
+	Texture2D& operator=(const Texture2D &other) = default;
+
+	Texture2D(Texture2D &&other) noexcept;
+	Texture2D& operator=(Texture2D &&other) noexcept;
+
+	bool loadFromFile(const std::filesystem::path &path);
+
+	bool create(unsigned width, unsigned height,
+	            const void *pixels=nullptr,
+	            bool repeat=false, bool smooth=false) noexcept;
+
 	void Destroy() noexcept;
 
 	void GetSize(GLint &width, GLint &height) const noexcept;

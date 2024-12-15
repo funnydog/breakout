@@ -64,6 +64,7 @@ ResourceManager::GetShader(std::string name)
 int
 ResourceManager::LoadTexture(std::string name, const char *path, GLboolean alpha)
 {
+	(void)alpha;
 	int width, height, channels;
 	unsigned char *pixels = stbi_load(path, &width, &height, &channels, 4);
 	if (pixels == nullptr)
@@ -72,10 +73,14 @@ ResourceManager::LoadTexture(std::string name, const char *path, GLboolean alpha
 		return -1;
 	}
 
-	GLint fmt = GL_RGBA;
 	Texture2D texture;
-	texture.Generate(width, height, fmt, fmt, pixels);
+	bool result = texture.create(width, height, pixels);
 	stbi_image_free(pixels);
+	if (!result)
+	{
+		std::cerr << "cannot generate the texture\n";
+		return -1;
+	}
 
 	Textures[name] = texture;
 	return 0;
