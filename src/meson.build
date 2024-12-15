@@ -1,7 +1,7 @@
 deps = []
-deps += dependency('glew', required : true)
-deps += dependency('glfw3', required : true)
-deps += dependency('freetype2', required : true)
+deps += dependency('glew', required : true, fallback : ['glew', 'glew_dep'])
+deps += dependency('glfw3', required : true, fallback : ['glfw', 'glfw_dep'])
+deps += dependency('freetype2', required : true, fallback : ['freetype2', 'freetype_dep'])
 
 cpp = meson.get_compiler('cpp')
 deps += cpp.find_library('SOIL', required: true)
