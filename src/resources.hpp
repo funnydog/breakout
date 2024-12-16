@@ -14,7 +14,8 @@ enum class LevelID
 
 enum class FontID
 {
-	OcraEXT,
+	Title,
+	Subtitle,
 };
 
 enum class TextureID

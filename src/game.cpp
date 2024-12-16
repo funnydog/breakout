@@ -340,7 +340,7 @@ Game::update(GLfloat dt)
 
 void Game::render()
 {
-	auto &font = mFonts.get(FontID::OcraEXT);
+	auto &font = mFonts.get(FontID::Title);
 	if (this->State == State::GAME_ACTIVE || this->State == State::GAME_MENU) {
 		this->effects->BeginRender();
 
@@ -367,7 +367,9 @@ void Game::render()
 
 	if (State == State::GAME_MENU) {
 		text->draw("Press ENTER to start", {250.0f, ScreenHeight / 2}, font);
-		text->draw("Press W or S to select level", {245.0f, ScreenHeight/2 + 20.0f}, font);
+
+		auto &small = mFonts.get(FontID::Subtitle);
+		text->draw("Press W or S to select level", {245.0f, ScreenHeight/2 + 20.0f}, small);
 	}
 
 	if (State == State::GAME_WIN) {
@@ -657,5 +659,6 @@ Game::loadAssets()
 	              "assets/shaders/postprocess.fs");
 
 	// fonts
-	mFonts.load(FontID::OcraEXT, "assets/fonts/ocraext.ttf", 24);
+	mFonts.load(FontID::Title, "assets/fonts/ocraext.ttf", 24);
+	mFonts.load(FontID::Subtitle, "assets/fonts/ocraext.ttf", 18);
 }
