@@ -26,8 +26,18 @@ public:
 	void draw() noexcept;
 
 private:
+	struct Batch
+	{
+		unsigned mVertexOffset;
+		unsigned mIndexOffset;
+		unsigned mIndexCount;
+	};
+
+	void saveCurrentBatch();
+
 	std::vector<glm::vec4> mVertices;
 	std::vector<std::uint16_t> mIndices;
+	std::vector<Batch> mBatches;
 	unsigned mVertexOffset;
 	unsigned mIndexOffset;
 

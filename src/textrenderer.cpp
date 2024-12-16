@@ -69,15 +69,31 @@ TextRenderer::draw() noexcept
 			     GL_STREAM_DRAW));
 
 	// draw the geometry
-	glCheck(glDrawElementsBaseVertex(
-		        GL_TRIANGLES,
-		        mIndices.size(),
-		        GL_UNSIGNED_SHORT,
-		        reinterpret_cast<GLvoid*>(mIndexOffset),
-		        mVertexOffset));
-
+	saveCurrentBatch();
+	for (const auto &batch : mBatches)
+	{
+		glCheck(glDrawElementsBaseVertex(
+			        GL_TRIANGLES,
+			        batch.mIndexCount,
+			        GL_UNSIGNED_SHORT,
+			        reinterpret_cast<GLvoid*>(batch.mIndexOffset),
+			        batch.mVertexOffset));
+	}
 	mVertices.clear();
 	mIndices.clear();
+	mBatches.clear();
+	mVertexOffset = mIndexOffset = 0;
+}
+
+void
+TextRenderer::saveCurrentBatch()
+{
+	mBatches.emplace_back(
+		mVertexOffset,
+		mIndexOffset,
+		mIndices.size()-mIndexOffset);
+	mVertexOffset = mVertices.size();
+	mIndexOffset = mIndices.size();
 }
 
 std::span<glm::vec4>
@@ -87,7 +103,8 @@ TextRenderer::reserve(unsigned vcount, std::span<const std::uint16_t> indices)
 	auto base = size - mVertexOffset;
 	if (base + vcount > UINT16_MAX)
 	{
-		throw std::runtime_error("make a new channel!");
+		saveCurrentBatch();
+		base = 0;
 	}
 	for (auto i : indices)
 	{
