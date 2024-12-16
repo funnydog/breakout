@@ -5,7 +5,7 @@
 #include FT_FREETYPE_H
 
 #include "glcheck.hpp"
-#include "text.hpp"
+#include "textrenderer.hpp"
 
 TextRenderer::TextRenderer(Shader const& s)
 	: TextShader(s)

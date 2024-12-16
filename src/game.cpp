@@ -10,7 +10,7 @@
 #include "particle.hpp"
 #include "postprocess.hpp"
 #include "spriterenderer.hpp"
-#include "text.hpp"
+#include "textrenderer.hpp"
 
 namespace
 {
