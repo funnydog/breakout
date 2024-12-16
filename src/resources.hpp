@@ -1,8 +1,5 @@
 #pragma once
 
-#include "font.hpp"
-#include "shader.hpp"
-#include "texture.hpp"
 
 enum class LevelID
 {
@@ -45,8 +42,11 @@ enum class ShaderID
 template <typename Resource, typename Identifier>
 class ResourceHolder;
 
+class Font;
 typedef ResourceHolder<Font, FontID> FontHolder;
 
+class Texture2D;
 typedef ResourceHolder<Texture2D, TextureID> TextureHolder;
 
+class Shader;
 typedef ResourceHolder<Shader, ShaderID> ShaderHolder;

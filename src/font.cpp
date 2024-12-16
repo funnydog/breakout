@@ -71,7 +71,7 @@ Font::loadFromFile(const std::filesystem::path &path, unsigned size)
 }
 
 void
-Font::draw(const std::string &text, glm::vec2 pos)
+Font::draw(TextRenderer &renderer, const std::string &text, glm::vec2 pos)
 {
 	if (text.empty())
 	{
@@ -85,33 +85,41 @@ Font::draw(const std::string &text, glm::vec2 pos)
 	}
 	mTexture.bind(0);
 
+	static const std::uint16_t indices[] = { 0, 1, 2, 1, 3, 2 };
 	static const glm::vec2 unit[] = {
 		{ 0.f, 0.f },
 		{ 0.f, 1.f },
 		{ 1.f, 0.f },
-		{ 0.f, 1.f },
 		{ 1.f, 1.f },
-		{ 1.f, 0.f },
 	};
+	// static const glm::vec2 unit[] = {
+	// 	{ 0.f, 0.f },
+	// 	{ 0.f, 1.f },
+	// 	{ 1.f, 0.f },
+	// 	{ 0.f, 1.f },
+	// 	{ 1.f, 1.f },
+	// 	{ 1.f, 0.f },
+	// };
 
-	glm::vec4 vertices[6];
+	// glm::vec4 vertices[6];
 	pos.y += mLineHeight;
 	for (auto codepoint: cv.from_bytes(text))
 	{
 		const auto &g = getGlyph(codepoint);
 		pos.x += g.bearing.x;
 		pos.y -= g.bearing.y;
-		for (int i = 0; i < 6; i++)
+		auto vertices = renderer.reserve(4, indices);
+		int i = 0;
+		for (auto &vertex : vertices)
 		{
-			vertices[i] = glm::vec4(g.size*unit[i]+pos,
-			                        g.uvSize*unit[i]+g.uvPos);
+			vertex = glm::vec4(g.size*unit[i]+pos, g.uvSize*unit[i]+g.uvPos);
+			i++;
 		}
 		pos.x += g.advance - g.bearing.x;
 		pos.y += g.bearing.y;
-
-		glCheck(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices));
-		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
+
+	renderer.draw();
 }
 
 glm::vec2

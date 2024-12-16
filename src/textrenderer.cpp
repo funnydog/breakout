@@ -2,20 +2,24 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "font.hpp"
 #include "glcheck.hpp"
 #include "textrenderer.hpp"
 
 TextRenderer::TextRenderer(const Shader &s)
-	: mShader(s)
+	: mVertexOffset(0)
+	, mIndexOffset(0)
+	, mShader(s)
 {
 	// set the sampler2D to texture unit 0
 	mShader.use();
 	mShader.getUniform("text").setInteger(0);
 
-	// reserve a VBO for the vertices
+	// create the EBO and VBO
 	glCheck(glGenBuffers(1, &mVBO));
 	glCheck(glBindBuffer(GL_ARRAY_BUFFER, mVBO));
-	glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW));
+	glCheck(glGenBuffers(1, &mEBO));
+	glCheck(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO));
 
 	// save the state to a VAO
 	glCheck(glGenVertexArrays(1, &mVAO));
@@ -26,11 +30,13 @@ TextRenderer::TextRenderer(const Shader &s)
         // unbind the VAO and the VBO
 	glCheck(glBindVertexArray(0));
 	glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	glCheck(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0));
 }
 
 TextRenderer::~TextRenderer()
 {
 	glCheck(glDeleteVertexArrays(1, &mVAO));
+	glCheck(glDeleteBuffers(1, &mEBO));
 	glCheck(glDeleteBuffers(1, &mVBO));
 }
 
@@ -42,6 +48,51 @@ TextRenderer::draw(const std::string &text, glm::vec2 pos, Font &font, glm::vec3
 	glCheck(glActiveTexture(GL_TEXTURE0));
 	glCheck(glBindVertexArray(mVAO));
 	glCheck(glBindBuffer(GL_ARRAY_BUFFER, mVBO));
-	font.draw(text, pos);
+	font.draw(*this, text, pos);
 	glCheck(glBindVertexArray(0));
+}
+
+void
+TextRenderer::draw() noexcept
+{
+	// upload the data
+	glCheck(glBindBuffer(GL_ARRAY_BUFFER, mVBO));
+	glCheck(glBufferData(GL_ARRAY_BUFFER,
+			     mVertices.size() * sizeof(mVertices[0]),
+			     mVertices.data(),
+			     GL_STREAM_DRAW));
+
+	glCheck(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO));
+	glCheck(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+			     mIndices.size() * sizeof(mIndices[0]),
+			     mIndices.data(),
+			     GL_STREAM_DRAW));
+
+	// draw the geometry
+	glCheck(glDrawElementsBaseVertex(
+		        GL_TRIANGLES,
+		        mIndices.size(),
+		        GL_UNSIGNED_SHORT,
+		        reinterpret_cast<GLvoid*>(mIndexOffset),
+		        mVertexOffset));
+
+	mVertices.clear();
+	mIndices.clear();
+}
+
+std::span<glm::vec4>
+TextRenderer::reserve(unsigned vcount, std::span<const std::uint16_t> indices)
+{
+	auto size = mVertices.size();
+	auto base = size - mVertexOffset;
+	if (base + vcount > UINT16_MAX)
+	{
+		throw std::runtime_error("make a new channel!");
+	}
+	for (auto i : indices)
+	{
+		mIndices.push_back(base + i);
+	}
+	mVertices.resize(size + vcount);
+	return std::span(mVertices.begin()+size, vcount);
 }

@@ -9,7 +9,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include "spriterenderer.hpp"
+#include "textrenderer.hpp"
 #include "texture.hpp"
 
 class Font
@@ -25,7 +25,7 @@ public:
 
 	bool loadFromFile(const std::filesystem::path &path, unsigned size);
 
-	void draw(const std::string &text, glm::vec2 pos);
+	void draw(TextRenderer &renderer, const std::string &text, glm::vec2 pos);
 
 	glm::vec2 getSize(const std::string &text);
 

@@ -5,6 +5,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "ball.hpp"
+#include "font.hpp"
 #include "game.hpp"
 #include "glcheck.hpp"
 #include "particle.hpp"
