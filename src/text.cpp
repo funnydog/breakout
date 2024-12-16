@@ -27,7 +27,7 @@ TextRenderer::TextRenderer(Shader const& s)
 }
 
 void
-TextRenderer::Load(std::string font, GLuint fontSize)
+TextRenderer::load(std::string font, GLuint fontSize)
 {
 	this->Characters.clear();
 
@@ -88,31 +88,31 @@ TextRenderer::Load(std::string font, GLuint fontSize)
 }
 
 void
-TextRenderer::RenderText(std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color)
+TextRenderer::draw(std::string text, glm::vec2 pos, float scale, glm::vec3 color)
 {
 	this->TextShader.use();
 	this->TextShader.getUniform("textColor").setVector3f(color);
 	glCheck(glActiveTexture(GL_TEXTURE0));
-	glBindVertexArray(this->VAO);
+	glCheck(glBindVertexArray(this->VAO));
 
 	for (auto c : text)
 	{
 		Character &ch = Characters[c];
 
-		float xpos = x + ch.Bearing.x * scale;
-		float ypos = y + (this->Characters['H'].Bearing.y - ch.Bearing.y) * scale;
+		glm::vec2 p;
+		p.x = pos.x + ch.Bearing.x * scale;
+		p.y = pos.y + (this->Characters['H'].Bearing.y - ch.Bearing.y) * scale;
 
-		float w = ch.Size.x * scale;
-		float h = ch.Size.y * scale;
+		glm::vec2 s(ch.Size.x * scale, ch.Size.y * scale);
 
 		GLfloat vertices[6][4] = {
-			{ xpos, ypos + h, 0.0f, 1.0f },
-			{ xpos + w, ypos, 1.0f, 0.0f },
-			{ xpos, ypos, 0.0f, 0.0f },
+			{ p.x, p.y + s.y, 0.0f, 1.0f },
+			{ p.x + s.x, p.y, 1.0f, 0.0f },
+			{ p.x, p.y, 0.0f, 0.0f },
 
-			{ xpos, ypos + h, 0.0f, 1.0f },
-			{ xpos + w, ypos + h, 1.0f, 1.0f },
-			{ xpos + w, ypos, 1.0f, 0.0f },
+			{ p.x, p.y + s.y, 0.0f, 1.0f },
+			{ p.x + s.x, p.y + s.y, 1.0f, 1.0f },
+			{ p.x + s.x, p.y, 1.0f, 0.0f },
 		};
 
 		glCheck(glBindTexture(GL_TEXTURE_2D, ch.TextureID));
@@ -123,7 +123,7 @@ TextRenderer::RenderText(std::string text, GLfloat x, GLfloat y, GLfloat scale, 
 
 		glCheck(glDrawArrays(GL_TRIANGLES, 0, 6));
 
-		x += (ch.Advance >> 6) * scale;
+		pos.x += (ch.Advance >> 6) * scale;
 	}
 	glCheck(glBindVertexArray(0));
 	glCheck(glBindTexture(GL_TEXTURE_2D, 0));

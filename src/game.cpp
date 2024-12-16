@@ -117,7 +117,7 @@ Game::Game()
 	textShader.use();
 	textShader.getUniform("projection").setMatrix4(proj);
 	text = std::make_unique<TextRenderer>(textShader);
-	text->Load("assets/fonts/ocraext.ttf", 24);
+	text->load("assets/fonts/ocraext.ttf", 24);
 
 	// set-up the effects
 	effects = std::make_unique<Postprocess>(
@@ -363,22 +363,21 @@ void Game::render()
 
 		std::stringstream ss;
 		ss << "Lives: " << this->Lives;
-		text->RenderText(ss.str(), 5.0f, 5.0f, 1.0f);
+		text->draw(ss.str(), {5.0f, 5.0f}, 1.0f);
 	}
 
 	if (State == State::GAME_MENU) {
-		text->RenderText("Press ENTER to start", 250.0f, ScreenHeight / 2, 1.0f);
-		text->RenderText("Press W or S to select level", 245.0f, ScreenHeight/2 + 20.0f, 0.75f);
+		text->draw("Press ENTER to start", {250.0f, ScreenHeight / 2}, 1.0f);
+		text->draw("Press W or S to select level", {245.0f, ScreenHeight/2 + 20.0f}, 0.75f);
 	}
 
 	if (State == State::GAME_WIN) {
-		text->RenderText(
-			"You WON!!!", 320.0f, ScreenHeight / 2 - 20.0f, 1.0f, glm::vec3(0.0f, 1.0f, 0.0f)
-			);
-		text->RenderText(
-			"Press ENTER to retry or ESC to quit",
-			130.0f, ScreenHeight / 2, 1.0f, glm::vec3(1.0f, 1.0f, 0.0f)
-			);
+		text->draw("You WON!!!",
+		           {320.0f, ScreenHeight / 2 - 20.0f}, 1.0f,
+		           glm::vec3(0.0f, 1.0f, 0.0f));
+		text->draw("Press ENTER to retry or ESC to quit",
+		           {130.0f, ScreenHeight / 2,}, 1.0f,
+		           glm::vec3(1.0f, 1.0f, 0.0f));
 	}
 }
 
