@@ -12,9 +12,10 @@ public:
 	explicit SpriteRenderer(Shader const& shader);
 	~SpriteRenderer();
 
-	void DrawSprite(Texture2D &texture, glm::vec2 position, glm::vec2 size = glm::vec2(10,10), GLfloat rotate = 0.0f, glm::vec3 color = glm::vec3(1.0f));
+	void draw(Texture2D &texture, glm::vec2 position, glm::vec2 size = glm::vec2(10,10), GLfloat rotate = 0.0f, glm::vec3 color = glm::vec3(1.0f));
 
 private:
-	Shader shader;
-	GLuint quadVAO;
+	Shader mShader;
+	GLuint mVAO;
+	GLuint mVBO;
 };

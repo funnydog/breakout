@@ -106,7 +106,6 @@ Game::Game()
 
 	auto spriteShader = mShaders.get(ShaderID::Sprite);
 	spriteShader.use();
-	spriteShader.getUniform("image").setInteger(0);
 	spriteShader.getUniform("projection").setMatrix4(proj);
 
 	// sprite renderer
@@ -346,9 +345,9 @@ void Game::render()
 		this->effects->BeginRender();
 
 		auto background = mTextures.get(TextureID::Background);
-		renderer->DrawSprite(background, glm::vec2(0.0f),
-		                           glm::vec2(ScreenWidth, ScreenHeight),
-		                           0.0f);
+		renderer->draw(background, glm::vec2(0.0f),
+		               glm::vec2(ScreenWidth, ScreenHeight),
+		               0.0f);
 		Levels[Level].Draw(*renderer);
 		player->Draw(*renderer);
 		for (PowerUP &p : this->PowerUPs) {
