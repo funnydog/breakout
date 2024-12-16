@@ -2,7 +2,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "glcheck.hpp"
-#include "sprite.hpp"
+#include "spriterenderer.hpp"
 
 SpriteRenderer::SpriteRenderer(Shader const& shader) :
 	shader(shader)

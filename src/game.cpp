@@ -9,7 +9,7 @@
 #include "glcheck.hpp"
 #include "particle.hpp"
 #include "postprocess.hpp"
-#include "sprite.hpp"
+#include "spriterenderer.hpp"
 #include "text.hpp"
 
 namespace

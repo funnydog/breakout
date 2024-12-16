@@ -22,7 +22,7 @@ executable(
     'particle.cpp',
     'postprocess.cpp',
     'shader.cpp',
-    'sprite.cpp',
+    'spriterenderer.cpp',
     'stb_image.cpp',
     'text.cpp',
     'texture.cpp',

@@ -4,7 +4,7 @@
 #include <glm/glm.hpp>
 
 #include "texture.hpp"
-#include "sprite.hpp"
+#include "spriterenderer.hpp"
 
 class GameObject
 {

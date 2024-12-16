@@ -6,7 +6,7 @@
 #include <glm/glm.hpp>
 
 #include "gameobject.hpp"
-#include "sprite.hpp"
+#include "spriterenderer.hpp"
 #include "resources.hpp"
 #include "resourceholder.hpp"
 
