@@ -7,44 +7,63 @@
 #include "glcheck.hpp"
 #include "textrenderer.hpp"
 
-TextRenderer::TextRenderer(Shader const& s)
-	: TextShader(s)
+TextRenderer::TextRenderer(const Shader &s)
+	: mShader(s)
 {
-	this->TextShader.use();
-	this->TextShader.getUniform("text").setInteger(0);
+	// set the sampler2D to texture unit 0
+	mShader.use();
+	mShader.getUniform("text").setInteger(0);
 
-	glCheck(glGenVertexArrays(1, &this->VAO));
-	glCheck(glBindVertexArray(this->VAO));
-
-	glCheck(glGenBuffers(1, &this->VBO));
-	glCheck(glBindBuffer(GL_ARRAY_BUFFER, this->VBO));
+	// reserve a VBO for the vertices
+	glCheck(glGenBuffers(1, &mVBO));
+	glCheck(glBindBuffer(GL_ARRAY_BUFFER, mVBO));
 	glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW));
 
+	// save the state to a VAO
+	glCheck(glGenVertexArrays(1, &mVAO));
+	glCheck(glBindVertexArray(mVAO));
 	glCheck(glEnableVertexAttribArray(0));
-	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0));
-	glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
+	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0));
+
+        // unbind the VAO and the VBO
 	glCheck(glBindVertexArray(0));
+	glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
 }
 
-void
-TextRenderer::load(std::string font, GLuint fontSize)
+TextRenderer::~TextRenderer()
 {
-	this->Characters.clear();
+	for (auto&[_, ch] : mCharacters)
+	{
+		glCheck(glDeleteTextures(1, &ch.TextureID));
+	}
+	glCheck(glDeleteVertexArrays(1, &mVAO));
+	glCheck(glDeleteBuffers(1, &mVBO));
+}
+
+bool
+TextRenderer::load(const std::string &font, GLuint fontSize) noexcept
+{
+	for (auto&[_, ch] : mCharacters)
+	{
+		glCheck(glDeleteTextures(1, &ch.TextureID));
+	}
+	mCharacters.clear();
 
 	FT_Library ft;
-	if (FT_Init_FreeType(&ft)) {
+	if (FT_Init_FreeType(&ft))
+	{
 		std::cerr << "ERROR::FREETYPE: Couldn't init FreeType Library\n";
-		return;
+		return false;
 	}
 
 	FT_Face face;
-	if (FT_New_Face(ft, font.c_str(), 0, &face)) {
+	if (FT_New_Face(ft, font.c_str(), 0, &face))
+	{
 		std::cerr << "ERROR::FREETYPE: Failed to load font: " << font << "\n";
-		return;
+		return false;
 	}
 
 	FT_Set_Pixel_Sizes(face, 0, fontSize);
-
 	glCheck(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
 	for (GLubyte c = 0; c < 128; c++)
 	{
@@ -80,28 +99,30 @@ TextRenderer::load(std::string font, GLuint fontSize)
 			glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
 			(GLuint)face->glyph->advance.x
 		};
-		this->Characters.insert(std::pair<GLchar, Character>(c, character));
+		mCharacters.insert(std::make_pair(c, character));
 	}
-	glCheck(glBindTexture(GL_TEXTURE_2D, 0));
 	FT_Done_Face(face);
 	FT_Done_FreeType(ft);
+	return true;
 }
 
 void
-TextRenderer::draw(std::string text, glm::vec2 pos, float scale, glm::vec3 color)
+TextRenderer::draw(const std::string &text, glm::vec2 pos, float scale, glm::vec3 color)
 {
-	this->TextShader.use();
-	this->TextShader.getUniform("textColor").setVector3f(color);
+	mShader.use();
+	mShader.getUniform("textColor").setVector3f(color);
 	glCheck(glActiveTexture(GL_TEXTURE0));
-	glCheck(glBindVertexArray(this->VAO));
+	glCheck(glBindVertexArray(mVAO));
+	glCheck(glBindBuffer(GL_ARRAY_BUFFER, mVBO));
 
+	int hBearing = mCharacters['H'].Bearing.y;
 	for (auto c : text)
 	{
-		Character &ch = Characters[c];
+		Character &ch = mCharacters[c];
 
 		glm::vec2 p;
 		p.x = pos.x + ch.Bearing.x * scale;
-		p.y = pos.y + (this->Characters['H'].Bearing.y - ch.Bearing.y) * scale;
+		p.y = pos.y + (hBearing - ch.Bearing.y) * scale;
 
 		glm::vec2 s(ch.Size.x * scale, ch.Size.y * scale);
 
@@ -116,15 +137,10 @@ TextRenderer::draw(std::string text, glm::vec2 pos, float scale, glm::vec3 color
 		};
 
 		glCheck(glBindTexture(GL_TEXTURE_2D, ch.TextureID));
-		glCheck(glBindBuffer(GL_ARRAY_BUFFER, this->VBO));
 		glCheck(glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices));
-
-		glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
-
 		glCheck(glDrawArrays(GL_TRIANGLES, 0, 6));
 
 		pos.x += (ch.Advance >> 6) * scale;
 	}
 	glCheck(glBindVertexArray(0));
-	glCheck(glBindTexture(GL_TEXTURE_2D, 0));
 }
