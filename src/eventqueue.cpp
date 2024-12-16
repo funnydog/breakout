@@ -87,6 +87,13 @@ EventQueue::windowSizeCallback(GLFWwindow *window, int width, int height)
 }
 
 void
+EventQueue::windowClosedCallback(GLFWwindow *window)
+{
+	auto &queue = getEventQueue(window);
+	queue.add(WindowClosed{window});
+}
+
+void
 EventQueue::keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
 	auto &queue = getEventQueue(window);

@@ -12,6 +12,11 @@ struct WindowResized
 	int height;
 };
 
+struct WindowClosed
+{
+	GLFWwindow *window;
+};
+
 struct KeyPressed
 {
 	GLFWwindow *window;
@@ -58,6 +63,7 @@ struct MouseCursorMoved
 };
 
 using Event = std::variant<WindowResized,
+                           WindowClosed,
                            KeyPressed,
                            KeyRepeated,
                            KeyReleased,

@@ -21,6 +21,7 @@ private:
 	static EventQueue& getEventQueue(GLFWwindow *window);
 
 	static void windowSizeCallback(GLFWwindow *window, int w, int h);
+	static void windowClosedCallback(GLFWwindow *window);
 	static void keyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
 	static void mouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
 	static void cursorPosCallback(GLFWwindow *window, double x, double y);
