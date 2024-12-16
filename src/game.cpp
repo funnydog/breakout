@@ -116,7 +116,6 @@ Game::Game()
 	textShader.use();
 	textShader.getUniform("projection").setMatrix4(proj);
 	text = std::make_unique<TextRenderer>(textShader);
-	text->load("assets/fonts/ocraext.ttf", 24);
 
 	// set-up the effects
 	effects = std::make_unique<Postprocess>(
@@ -341,6 +340,7 @@ Game::update(GLfloat dt)
 
 void Game::render()
 {
+	auto &font = mFonts.get(FontID::OcraEXT);
 	if (this->State == State::GAME_ACTIVE || this->State == State::GAME_MENU) {
 		this->effects->BeginRender();
 
@@ -362,21 +362,21 @@ void Game::render()
 
 		std::stringstream ss;
 		ss << "Lives: " << this->Lives;
-		text->draw(ss.str(), {5.0f, 5.0f}, 1.0f);
+		text->draw(ss.str(), {5.0f, 5.0f}, font);
 	}
 
 	if (State == State::GAME_MENU) {
-		text->draw("Press ENTER to start", {250.0f, ScreenHeight / 2}, 1.0f);
-		text->draw("Press W or S to select level", {245.0f, ScreenHeight/2 + 20.0f}, 0.75f);
+		text->draw("Press ENTER to start", {250.0f, ScreenHeight / 2}, font);
+		text->draw("Press W or S to select level", {245.0f, ScreenHeight/2 + 20.0f}, font);
 	}
 
 	if (State == State::GAME_WIN) {
 		text->draw("You WON!!!",
-		           {320.0f, ScreenHeight / 2 - 20.0f}, 1.0f,
-		           glm::vec3(0.0f, 1.0f, 0.0f));
+		           {320.0f, ScreenHeight / 2 - 20.0f},
+		           font, glm::vec3(0.0f, 1.0f, 0.0f));
 		text->draw("Press ENTER to retry or ESC to quit",
-		           {130.0f, ScreenHeight / 2,}, 1.0f,
-		           glm::vec3(1.0f, 1.0f, 0.0f));
+		           {130.0f, ScreenHeight / 2,},
+		           font, glm::vec3(1.0f, 1.0f, 0.0f));
 	}
 }
 
@@ -628,6 +628,7 @@ Game::UpdatePowerUPs(float dt)
 void
 Game::loadAssets()
 {
+        // textures
 	mTextures.load(TextureID::Face, "assets/textures/awesomeface.png");
 	mTextures.load(TextureID::Background, "assets/textures/background.jpg");
 	mTextures.load(TextureID::Block, "assets/textures/block.png");
@@ -641,6 +642,7 @@ Game::loadAssets()
 	mTextures.load(TextureID::PowerupChaos, "assets/textures/powerup_chaos.png");
 	mTextures.load(TextureID::PowerupPassthrough, "assets/textures/powerup_passthrough.png");
 
+	// shaders
 	mShaders.load(ShaderID::Sprite,
 	              "assets/shaders/sprite.vs",
 	              "assets/shaders/sprite.fs");
@@ -653,4 +655,7 @@ Game::loadAssets()
 	mShaders.load(ShaderID::Postprocess,
 	              "assets/shaders/postprocess.vs",
 	              "assets/shaders/postprocess.fs");
+
+	// fonts
+	mFonts.load(FontID::OcraEXT, "assets/fonts/ocraext.ttf", 24);
 }

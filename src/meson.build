@@ -15,6 +15,7 @@ executable(
   'breakout', [
     'ball.cpp',
     'eventqueue.cpp',
+    'font.cpp',
     'game.cpp',
     'gameobject.cpp',
     'glcheck.cpp',

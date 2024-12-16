@@ -1,5 +1,6 @@
 #pragma once
 
+#include "font.hpp"
 #include "shader.hpp"
 #include "texture.hpp"
 
@@ -43,7 +44,6 @@ enum class ShaderID
 template <typename Resource, typename Identifier>
 class ResourceHolder;
 
-class Font;
 typedef ResourceHolder<Font, FontID> FontHolder;
 
 typedef ResourceHolder<Texture2D, TextureID> TextureHolder;
