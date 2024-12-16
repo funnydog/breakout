@@ -1,9 +1,13 @@
+#include "glcheck.hpp"
 #include "particle.hpp"
 
-ParticleGen::ParticleGen(Shader const& shader, Texture2D texture, GLuint amount) :
-	shader(shader), texture(texture), amount(amount), lastUsedParticle(0)
+ParticleGen::ParticleGen(const Shader &shader, Texture2D texture, unsigned amount)
+	: mParticles()
+	, mShader(shader)
+	, mTexture(texture)
+	, mAmount(amount)
+	, mLastUsedParticle(0)
 {
-	GLuint VBO;
 	static const float quad[] = {
 		0.0f, 1.0f, 0.0f, 1.0f,
 		1.0f, 0.0f, 1.0f, 0.0f,
@@ -14,33 +18,46 @@ ParticleGen::ParticleGen(Shader const& shader, Texture2D texture, GLuint amount)
 		1.0f, 0.0f, 1.0f, 0.0f,
 	};
 
-	glGenVertexArrays(1, &this->VAO);
-	glBindVertexArray(this->VAO);
+	// create the VBO
+	glCheck(glGenBuffers(1, &mVBO));
+	glCheck(glBindBuffer(GL_ARRAY_BUFFER, mVBO));
+	glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(quad), quad, GL_STATIC_DRAW));
 
-	glGenBuffers(1, &VBO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quad), quad, GL_STATIC_DRAW);
+	// create the VAO
+	glCheck(glGenVertexArrays(1, &mVAO));
+	glCheck(glBindVertexArray(mVAO));
+	glCheck(glEnableVertexAttribArray(0));
+	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0));
 
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-	glBindVertexArray(0);
+	// unbind the VAO and the VBO
+	glCheck(glBindVertexArray(0));
+	glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
 
-	this->particles.resize(this->amount, Particle());
+	mParticles.resize(mAmount, Particle());
+}
+
+ParticleGen::~ParticleGen()
+{
+	glCheck(glDeleteBuffers(1, &mVBO));
+	glCheck(glDeleteVertexArrays(1, &mVAO));
 }
 
 void
-ParticleGen::Update(GLfloat dt, GameObject &obj, GLuint newParticles, glm::vec2 offset)
+ParticleGen::update(GLfloat dt, unsigned newParticles, glm::vec2 pos, glm::vec2 vel)
 {
 	// new particles
-	for (unsigned i = 0; i < newParticles; i++) {
-		int unusedParticle = this->firstUnusedParticle();
-		respawnParticle(this->particles[unusedParticle], obj, offset);
+	while (newParticles-->0)
+	{
+		int unusedParticle = firstUnusedParticle();
+		respawnParticle(mParticles[unusedParticle], pos, vel);
 	}
 
 	// update particles
-	for (Particle &p : this->particles) {
+	for (Particle &p : mParticles)
+	{
 		p.Life -= dt;
-		if (p.Life > 0.0f) {
+		if (p.Life > 0.0f)
+		{
 			p.Position -= p.Velocity * dt;
 			p.Color.a -= dt * 2.5f;
 		}
@@ -48,57 +65,64 @@ ParticleGen::Update(GLfloat dt, GameObject &obj, GLuint newParticles, glm::vec2 
 }
 
 void
-ParticleGen::Draw()
+ParticleGen::draw()
 {
-	// additive blending for glow effect
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	shader.use();
-	glBindVertexArray(this->VAO);
-	for (Particle &p : this->particles)
-	{
-		if (p.Life <= 0.0f)
-			continue;
+	mShader.use();
 
-		this->shader.getUniform("offset").setVector2f(p.Position);
-		this->shader.getUniform("color").setVector4f(p.Color);
-		texture.bind(0);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+	// additive blending for glow effect
+	glCheck(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
+
+        // draw the geometry
+	glCheck(glBindVertexArray(mVAO));
+	for (const Particle &p : mParticles)
+	{
+		if (p.Life > 0.0f)
+		{
+			mShader.getUniform("offset").setVector2f(p.Position);
+			mShader.getUniform("color").setVector4f(p.Color);
+			mTexture.bind(0);
+			glCheck(glDrawArrays(GL_TRIANGLES, 0, 6));
+		}
 	}
-	glBindVertexArray(0);
+	glCheck(glBindVertexArray(0));
 
 	// restore the old blend function
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glCheck(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 }
 
 GLuint
 ParticleGen::firstUnusedParticle()
 {
-	for (unsigned i = this->lastUsedParticle; i < this->amount; ++i) {
-		if (this->particles[i].Life <= 0.0f) {
-			lastUsedParticle = i;
+	for (unsigned i = mLastUsedParticle; i < mAmount; ++i)
+	{
+		if (mParticles[i].Life <= 0.0f)
+		{
+			mLastUsedParticle = i;
 			return i;
 		}
 	}
 
-	for (unsigned i = 0; i < lastUsedParticle; ++i) {
-		if (this->particles[i].Life <= 0.0f) {
-			lastUsedParticle = i;
+	for (unsigned i = 0; i < mLastUsedParticle; ++i)
+	{
+		if (mParticles[i].Life <= 0.0f)
+		{
+			mLastUsedParticle = i;
 			return i;
 		}
 	}
 
-	lastUsedParticle = 0;
+	mLastUsedParticle = 0;
 	return 0;
 }
 
 void
-ParticleGen::respawnParticle(Particle &p, GameObject &obj, glm::vec2 offset)
+ParticleGen::respawnParticle(Particle &p, glm::vec2 pos, glm::vec2 vel)
 {
 	float random = ((rand() % 100) - 50) / 10.0f;
 	float rcolor = 0.5 + ((rand() % 100) / 100.0f);
 
-	p.Position = obj.Position + random + offset;
+	p.Position = pos + random;
 	p.Color = glm::vec4(rcolor, rcolor, rcolor, 1.0f);
 	p.Life = 1.0f;
-	p.Velocity = obj.Velocity * 0.1f;
+	p.Velocity = vel * 0.1f;
 }

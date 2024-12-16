@@ -3,32 +3,38 @@
 #include "glcheck.hpp"
 #include "postprocess.hpp"
 
-Postprocess::Postprocess(Shader const& shader, unsigned width, unsigned height) :
-	PostProcessingShader(shader), Texture(), Width(width), Height(height),
-	Confuse(false), Chaos(false), Shake(false)
+Postprocess::Postprocess(const Shader &shader, unsigned width, unsigned height)
+	: Confuse(false)
+	, Chaos(false)
+	, Shake(false)
+	, mShader(shader)
+	, mTexture()
+	, mWidth(width)
+	, mHeight(height)
 {
-	glCheck(glGenFramebuffers(1, &this->MSFBO));
-	glCheck(glGenFramebuffers(1, &this->FBO));
-	glCheck(glGenRenderbuffers(1, &this->RBO));
+	glCheck(glGenFramebuffers(1, &mMSFBO));
+	glCheck(glGenFramebuffers(1, &mFBO));
+	glCheck(glGenRenderbuffers(1, &mRBO));
 
-	glCheck(glBindFramebuffer(GL_FRAMEBUFFER, this->MSFBO));
-	glCheck(glBindRenderbuffer(GL_RENDERBUFFER, this->RBO));
+	glCheck(glBindFramebuffer(GL_FRAMEBUFFER, mMSFBO));
+	glCheck(glBindRenderbuffer(GL_RENDERBUFFER, mRBO));
 	glCheck(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 8, GL_RGB, width, height));
-	glCheck(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, this->RBO));
+	glCheck(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, mRBO));
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
 		throw std::runtime_error("Postprocess(): Failed to initialize MSFBO");
 	}
 
-	glCheck(glBindFramebuffer(GL_FRAMEBUFFER, this->FBO));
-	this->Texture.create(width, height);
-	glCheck(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, this->Texture.getHandle(), 0));
+	glCheck(glBindFramebuffer(GL_FRAMEBUFFER, mFBO));
+	mTexture.create(width, height, nullptr, true, true);
+	glCheck(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+	                               mTexture.getHandle(), 0));
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
 		throw std::runtime_error("Postprocess: Failed to initialize FBO");
 	}
 
-	GLuint VBO;
+	// generate a VBO and upload the vertices
 	static const float vertices[] = {
 		-1.0f, -1.0f, 0.0f, 0.0f,
 		 1.0f,  1.0f, 1.0f, 1.0f,
@@ -38,20 +44,24 @@ Postprocess::Postprocess(Shader const& shader, unsigned width, unsigned height) 
 		 1.0f, -1.0f, 1.0f, 0.0f,
 		 1.0f,  1.0f, 1.0f, 1.0f,
 	};
-	glCheck(glGenVertexArrays(1, &this->VAO));
-	glCheck(glBindVertexArray(this->VAO));
-
-	glCheck(glGenBuffers(1, &VBO));
-	glCheck(glBindBuffer(GL_ARRAY_BUFFER, VBO));
+	glCheck(glGenBuffers(1, &mVBO));
+	glCheck(glBindBuffer(GL_ARRAY_BUFFER, mVBO));
 	glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW));
 
+	// generate a VAO and set the parameters
+	glCheck(glGenVertexArrays(1, &mVAO));
+	glCheck(glBindVertexArray(mVAO));
 	glCheck(glEnableVertexAttribArray(0));
 	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0));
+
+        // unbind the VBO and the VAO
 	glCheck(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	glCheck(glBindVertexArray(0));
 
-	this->PostProcessingShader.use();
-	this->PostProcessingShader.getUniform("scene").setInteger(0);
+	// set the shader uniforms
+	mShader.use();
+	mShader.getUniform("scene").setInteger(0);
+
 	GLfloat offset = 1.0f / 300.0f;
 	const GLfloat offsets[][2] = {
 		{ -offset,  offset },
@@ -64,27 +74,36 @@ Postprocess::Postprocess(Shader const& shader, unsigned width, unsigned height) 
 		{    0.0f, -offset },
 		{  offset, -offset },
 	};
-	this->PostProcessingShader.getUniform("offsets").setVector2fv(offsets, 9);
+	mShader.getUniform("offsets").setVector2fv(offsets, 9);
 
 	GLint edge_kernel[9] = {
 		-1, -1, -1,
 		-1,  8, -1,
 		-1, -1, -1,
 	};
-	this->PostProcessingShader.getUniform("edge_kernel").setInteger1iv(edge_kernel, 9);
+	mShader.getUniform("edge_kernel").setInteger1iv(edge_kernel, 9);
 
 	GLfloat blur_kernel[9] = {
 		1.0f / 16.0f, 2.0f / 16.0f, 1.0f / 16.0f,
 		2.0f / 16.0f, 4.0f / 16.0f, 2.0f / 16.0f,
 		1.0f / 16.0f, 2.0f / 16.0f, 1.0f / 16.0f,
 	};
-	this->PostProcessingShader.getUniform("blur_kernel").setFloat1fv(blur_kernel, 9);
+	mShader.getUniform("blur_kernel").setFloat1fv(blur_kernel, 9);
+}
+
+Postprocess::~Postprocess()
+{
+	glCheck(glDeleteVertexArrays(1, &mVAO));
+	glCheck(glDeleteBuffers(1, &mVBO));
+	glCheck(glDeleteRenderbuffers(1, &mRBO));
+	glCheck(glDeleteFramebuffers(1, &mFBO));
+	glCheck(glDeleteFramebuffers(1, &mMSFBO));
 }
 
 void
 Postprocess::BeginRender()
 {
-	glCheck(glBindFramebuffer(GL_FRAMEBUFFER, this->MSFBO));
+	glCheck(glBindFramebuffer(GL_FRAMEBUFFER, mMSFBO));
 	glCheck(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
 	glCheck(glClear(GL_COLOR_BUFFER_BIT));
 }
@@ -92,10 +111,10 @@ Postprocess::BeginRender()
 void
 Postprocess::EndRender()
 {
-	glCheck(glBindFramebuffer(GL_READ_FRAMEBUFFER, this->MSFBO));
-	glCheck(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, this->FBO));
-	glCheck(glBlitFramebuffer(0, 0, this->Width, this->Height,
-	                          0, 0, this->Width, this->Height,
+	glCheck(glBindFramebuffer(GL_READ_FRAMEBUFFER, mMSFBO));
+	glCheck(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFBO));
+	glCheck(glBlitFramebuffer(0, 0, mWidth, mHeight,
+	                          0, 0, mWidth, mHeight,
 	                          GL_COLOR_BUFFER_BIT, GL_NEAREST));
 	glCheck(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
@@ -103,14 +122,14 @@ Postprocess::EndRender()
 void
 Postprocess::Render(float time)
 {
-	this->PostProcessingShader.use();
-	this->PostProcessingShader.getUniform("time").setFloat(time);
-	this->PostProcessingShader.getUniform("confuse").setInteger(this->Confuse);
-	this->PostProcessingShader.getUniform("chaos").setInteger(this->Chaos);
-	this->PostProcessingShader.getUniform("shake").setInteger(this->Shake);
+	mShader.use();
+	mShader.getUniform("time").setFloat(time);
+	mShader.getUniform("confuse").setInteger(Confuse);
+	mShader.getUniform("chaos").setInteger(Chaos);
+	mShader.getUniform("shake").setInteger(Shake);
 
-	Texture.bind(0);
-	glCheck(glBindVertexArray(this->VAO));
+	mTexture.bind(0);
+	glCheck(glBindVertexArray(mVAO));
 	glCheck(glDrawArrays(GL_TRIANGLES, 0, 6));
 	glCheck(glBindVertexArray(0));
 }

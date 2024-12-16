@@ -312,7 +312,9 @@ Game::update(GLfloat dt)
 	this->ball->Move(dt, ScreenWidth);
 	this->DoCollisions();
 
-	this->particles->Update(dt, *this->ball, 2, glm::vec2(this->ball->Radius/2.0f));
+	this->particles->update(dt, 2,
+	                        ball->Position + glm::vec2(ball->Radius/2.f),
+	                        ball->Velocity);
 
 	this->UpdatePowerUPs(dt);
 
@@ -334,7 +336,7 @@ Game::update(GLfloat dt)
 	if (this->State == State::GAME_ACTIVE && this->Levels[this->Level].IsCompleted()) {
 		this->ResetLevel();
 		this->ResetPlayer();
-		this->effects->Chaos = GL_TRUE;
+		this->effects->Chaos = true;
 		this->State = State::GAME_WIN;
 	}
 }
@@ -355,7 +357,7 @@ void Game::render()
 			if (!p.Destroyed)
 				p.Draw(*renderer);
 		}
-		particles->Draw();
+		particles->draw();
 		ball->Draw(*renderer);
 
 		effects->EndRender();

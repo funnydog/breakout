@@ -10,25 +10,27 @@
 class Postprocess
 {
 public:
-	Shader const& PostProcessingShader;
-	Texture2D Texture;
-
-	unsigned Width;
-	unsigned Height;
-
-	bool Confuse;
-	bool Chaos;
-	bool Shake;
-
-	Postprocess(Shader const& shader, unsigned width, unsigned height);
+	Postprocess(const Shader &shader, unsigned width, unsigned height);
+	~Postprocess();
 
 	void BeginRender();
 	void EndRender();
 	void Render(float time);
 
+	bool Confuse;
+	bool Chaos;
+	bool Shake;
+
 private:
-	GLuint MSFBO;		// multisampled FBO
-	GLuint FBO;		// regular FBO
-	GLuint RBO;
-	GLuint VAO;
+	Shader mShader;
+	Texture2D mTexture;
+
+	unsigned mWidth;
+	unsigned mHeight;
+
+	GLuint mMSFBO;          // multisampled FBO
+	GLuint mFBO;            // regular FBO
+	GLuint mRBO;
+	GLuint mVAO;
+	GLuint mVBO;
 };
