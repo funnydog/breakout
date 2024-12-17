@@ -28,6 +28,7 @@ executable(
     'spriterenderer.cpp',
     'stb_image.cpp',
     'textrenderer.cpp',
+    'levelrenderer.cpp',
     'texture.cpp',
     'utility.cpp',
     asset_link,

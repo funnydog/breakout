@@ -10,6 +10,7 @@
 #include "glcheck.hpp"
 #include "particle.hpp"
 #include "postprocess.hpp"
+#include "levelrenderer.hpp"
 #include "spriterenderer.hpp"
 #include "textrenderer.hpp"
 
@@ -134,11 +135,12 @@ Game::Game()
 		mTextures.get(TextureID::Particle),
 		500);
 
-	// blocks shader
+	// blocks shader and level renderer
 	auto blocksShader = mShaders.get(ShaderID::Blocks);
 	blocksShader.use();
 	blocksShader.getUniform("image").setInteger(0);
 	blocksShader.getUniform("projection").setMatrix4(proj);
+	mLevelRenderer = std::make_unique<LevelRenderer>(blocksShader);
 }
 
 Game::~Game()
@@ -352,10 +354,8 @@ void Game::render()
 		renderer->draw(background, glm::vec2(0.0f),
 		               glm::vec2(ScreenWidth, ScreenHeight));
 
-		// render the level
-		mShaders.get(ShaderID::Blocks).use();
 		mTextures.get(TextureID::Blocks).bind(0);
-		Levels[Level].draw(*mBatchRenderer);
+		mLevelRenderer->draw(*mBatchRenderer, Levels[Level]);
 
 		player->Draw(*renderer);
 		for (PowerUP &p : this->PowerUPs) {
