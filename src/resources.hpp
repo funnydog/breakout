@@ -19,6 +19,7 @@ enum class TextureID
 {
 	Face,
 	Background,
+	Blocks,
 	Block,
 	BlockSolid,
 	Paddle,
@@ -37,6 +38,7 @@ enum class ShaderID
 	Postprocess,
 	Sprite,
 	Text,
+	Blocks,
 };
 
 template <typename Resource, typename Identifier>

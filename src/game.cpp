@@ -73,7 +73,7 @@ Game::Game()
 	for (const char *path : levels)
 	{
 		GameLevel level;
-		if (level.Load(mTextures, path, ScreenWidth, ScreenHeight / 2) < 0)
+		if (!level.load(path, ScreenWidth, ScreenHeight / 2))
 		{
 			std::cerr << "Level '" << path << "' error\n";
 			continue;
@@ -81,6 +81,8 @@ Game::Game()
 		Levels.push_back(level);
 	}
 
+	// batch renderer
+	mBatchRenderer = std::make_unique<BatchRenderer>();
 
 	// player, ball and game shader
 	glm::vec2 playerPos = glm::vec2(
@@ -131,6 +133,12 @@ Game::Game()
 		particleShader,
 		mTextures.get(TextureID::Particle),
 		500);
+
+	// blocks shader
+	auto blocksShader = mShaders.get(ShaderID::Blocks);
+	blocksShader.use();
+	blocksShader.getUniform("image").setInteger(0);
+	blocksShader.getUniform("projection").setMatrix4(proj);
 }
 
 Game::~Game()
@@ -229,13 +237,17 @@ Game::processInput()
 void
 Game::ResetLevel()
 {
-	if (0 <= this->Level && this->Level < 5) {
+	if (0 <= this->Level && this->Level < 5)
+	{
 		GameLevel level;
-		if (level.Load(mTextures, levels[this->Level],
-		               ScreenWidth, ScreenHeight / 2) < 0)
+		if (!level.load(levels[this->Level], ScreenWidth, ScreenHeight / 2))
+		{
 			std::cerr << "Level '" << levels[this->Level] << "' error\n";
+		}
 		else
+		{
 			Levels[this->Level] = level;
+		}
 	}
 	this->Lives = 3;
 }
@@ -322,7 +334,7 @@ Game::update(GLfloat dt)
 		this->ResetPlayer();
 	}
 
-	if (this->State == State::GAME_ACTIVE && this->Levels[this->Level].IsCompleted()) {
+	if (this->State == State::GAME_ACTIVE && this->Levels[this->Level].isCompleted()) {
 		this->ResetLevel();
 		this->ResetPlayer();
 		this->effects->Chaos = true;
@@ -339,7 +351,12 @@ void Game::render()
 		auto background = mTextures.get(TextureID::Background);
 		renderer->draw(background, glm::vec2(0.0f),
 		               glm::vec2(ScreenWidth, ScreenHeight));
-		Levels[Level].Draw(*renderer);
+
+		// render the level
+		mShaders.get(ShaderID::Blocks).use();
+		mTextures.get(TextureID::Blocks).bind(0);
+		Levels[Level].draw(*mBatchRenderer);
+
 		player->Draw(*renderer);
 		for (PowerUP &p : this->PowerUPs) {
 			if (!p.Destroyed)
@@ -404,11 +421,11 @@ static Direction VectorDirection(glm::vec2 target)
 	return (Direction)best_match;
 }
 
-static Collision CheckCollision(BallObject &a, GameObject &b)
+static Collision CheckCollision(const BallObject &a, glm::vec2 pos, glm::vec2 size)
 {
 	glm::vec2 ball_center(a.Position + a.Radius);
-	glm::vec2 aabb_half_extents(b.Size.x/2, b.Size.y/2);
-	glm::vec2 aabb_center(b.Position + aabb_half_extents);
+	glm::vec2 aabb_half_extents(size.x/2, size.y/2);
+	glm::vec2 aabb_center(pos + aabb_half_extents);
 
 	glm::vec2 difference = ball_center - aabb_center;
 	glm::vec2 clamped = glm::clamp(difference, -aabb_half_extents, aabb_half_extents);
@@ -460,44 +477,56 @@ void
 Game::DoCollisions()
 {
 	// bricks collisions
-	for (GameObject &obj : this->Levels[this->Level].Bricks) {
-		if (!obj.Destroyed) {
-			Collision c = CheckCollision(*this->ball, obj);
-			if (std::get<0>(c)) {
-				if (!obj.IsSolid) {
-					obj.Destroyed = true;
-					this->SpawnPowerUPs(obj);
-				} else {
-					this->shakeTime = 0.05f;
-					this->effects->Shake = true;
-				}
+	glm::vec2 size = this->Levels[this->Level].mBrickSize;
+	for (auto &obj : this->Levels[this->Level].mBricks)
+	{
+		if (obj.dead)
+		{
+			continue;
+		}
 
-				Direction dir = std::get<1>(c);
-				glm::vec2 difference = std::get<2>(c);
-				if ((this->ball->PassThrough && !obj.IsSolid)) {
-					// nothing
-				} else if (dir == LEFT || dir == RIGHT) {
-					this->ball->Velocity.x = -this->ball->Velocity.x;
-					float penetration = this->ball->Radius - std::abs(difference.x);
-					if (dir == LEFT)
-						this->ball->Position.x += penetration;
-					else
-						this->ball->Position.x -= penetration;
-				} else {
-					this->ball->Velocity.y = -this->ball->Velocity.y;
-					float penetration = this->ball->Radius - std::abs(difference.y);
-					if (dir == UP)
-						this->ball->Position.y -= penetration;
-					else
-						this->ball->Position.y += penetration;
-				}
+		Collision c = CheckCollision(*ball, obj.position, size);
+		if (std::get<0>(c))
+		{
+			if (!obj.solid)
+			{
+				obj.dead = true;
+				this->SpawnPowerUPs(obj.position);
+			}
+			else
+			{
+				this->shakeTime = 0.05f;
+				this->effects->Shake = true;
+			}
+
+			Direction dir = std::get<1>(c);
+			glm::vec2 difference = std::get<2>(c);
+			if ((this->ball->PassThrough && !obj.solid))
+			{
+				// nothing
+			}
+			else if (dir == LEFT || dir == RIGHT)
+			{
+				this->ball->Velocity.x = -this->ball->Velocity.x;
+				float penetration = this->ball->Radius - std::abs(difference.x);
+				if (dir == LEFT)
+					this->ball->Position.x += penetration;
+				else
+					this->ball->Position.x -= penetration;
+			} else {
+				this->ball->Velocity.y = -this->ball->Velocity.y;
+				float penetration = this->ball->Radius - std::abs(difference.y);
+				if (dir == UP)
+					this->ball->Position.y -= penetration;
+				else
+					this->ball->Position.y += penetration;
 			}
 		}
 	}
 
 	// this->player collision
 	if (!this->ball->Stuck) {
-		Collision c = CheckCollision(*this->ball, *this->player);
+		Collision c = CheckCollision(*this->ball, player->Position, player->Size);
 		if (std::get<0>(c)) {
 			float center = this->player->Position.x + this->player->Size.x / 2;
 			float distance = this->ball->Position.x + this->ball->Radius - center;
@@ -534,41 +563,41 @@ static bool shouldSpawn(unsigned chance)
 }
 
 void
-Game::SpawnPowerUPs(GameObject &block)
+Game::SpawnPowerUPs(glm::vec2 pos)
 {
 	if (shouldSpawn(75)) {
 		PowerUPs.emplace_back(
-			PowerUP::SPEED, glm::vec3(0.5f, 0.5f, 1.0f), 0.0f, block.Position,
+			PowerUP::SPEED, glm::vec3(0.5f, 0.5f, 1.0f), 0.0f, pos,
 			mTextures.get(TextureID::PowerupSpeed));
 	}
 
 	if (shouldSpawn(75)) {
 		PowerUPs.emplace_back(
-			PowerUP::STICKY, glm::vec3(1.0f, 0.5f, 1.0f), 20.0f, block.Position,
+			PowerUP::STICKY, glm::vec3(1.0f, 0.5f, 1.0f), 20.0f, pos,
 			mTextures.get(TextureID::PowerupSticky));
 	}
 
 	if (shouldSpawn(75)) {
 		PowerUPs.emplace_back(
-			PowerUP::PASSTHROUGH, glm::vec3(0.5f, 1.0f, 0.5f), 10.0f, block.Position,
+			PowerUP::PASSTHROUGH, glm::vec3(0.5f, 1.0f, 0.5f), 10.0f, pos,
 			mTextures.get(TextureID::PowerupPassthrough));
 	}
 
 	if (shouldSpawn(75)) {
 		PowerUPs.emplace_back(
-			PowerUP::PAD_INCREASE, glm::vec3(1.0f, 0.6f, 0.4f), 0.0f, block.Position,
+			PowerUP::PAD_INCREASE, glm::vec3(1.0f, 0.6f, 0.4f), 0.0f, pos,
 			mTextures.get(TextureID::PowerupIncrease));
 	}
 
 	if (shouldSpawn(15)) {
 		PowerUPs.emplace_back(
-			PowerUP::CONFUSE, glm::vec3(1.0f, 0.3f, 0.3f), 15.0f, block.Position,
+			PowerUP::CONFUSE, glm::vec3(1.0f, 0.3f, 0.3f), 15.0f, pos,
 			mTextures.get(TextureID::PowerupConfuse));
 	}
 
 	if (shouldSpawn(15)) {
 		PowerUPs.emplace_back(
-			PowerUP::CHAOS, glm::vec3(0.9f, 0.25f, 0.25f), 15.0f, block.Position,
+			PowerUP::CHAOS, glm::vec3(0.9f, 0.25f, 0.25f), 15.0f, pos,
 			mTextures.get(TextureID::PowerupChaos));
 	}
 }
@@ -624,6 +653,7 @@ Game::loadAssets()
         // textures
 	mTextures.load(TextureID::Face, "assets/textures/awesomeface.png");
 	mTextures.load(TextureID::Background, "assets/textures/background.jpg");
+	mTextures.load(TextureID::Blocks, "assets/textures/blocks.png");
 	mTextures.load(TextureID::Block, "assets/textures/block.png");
 	mTextures.load(TextureID::BlockSolid, "assets/textures/block_solid.png");
 	mTextures.load(TextureID::Paddle, "assets/textures/paddle.png");
@@ -648,6 +678,9 @@ Game::loadAssets()
 	mShaders.load(ShaderID::Postprocess,
 	              "assets/shaders/postprocess.vs",
 	              "assets/shaders/postprocess.fs");
+	mShaders.load(ShaderID::Blocks,
+	              "assets/shaders/blocks.vs",
+	              "assets/shaders/blocks.fs");
 
 	// fonts
 	mFonts.load(FontID::Title, "assets/fonts/ocraext.ttf", 24);

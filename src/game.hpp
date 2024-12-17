@@ -47,11 +47,12 @@ public:
 	void DoCollisions();
 
 	void ActivatePowerUP(PowerUP &p);
-	void SpawnPowerUPs(GameObject &block);
+	void SpawnPowerUPs(glm::vec2 pos);
 	void UpdatePowerUPs(float dt);
 
 private:
 	std::unique_ptr<SpriteRenderer> renderer;
+	std::unique_ptr<BatchRenderer> mBatchRenderer;
 	std::unique_ptr<GameObject> player;
 	std::unique_ptr<BallObject> ball;
 	std::unique_ptr<ParticleGen> particles;
