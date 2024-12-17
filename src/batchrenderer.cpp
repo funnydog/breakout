@@ -2,14 +2,16 @@
 
 #include "font.hpp"
 #include "glcheck.hpp"
+#include "level.hpp"
 #include "batchrenderer.hpp"
 
-BatchRenderer::BatchRenderer(const Shader &textShader)
+BatchRenderer::BatchRenderer(const Shader &textShader, const Shader &levelShader)
 	: mVertexOffset(0)
 	, mVertexCount(0)
 	, mIndexOffset(0)
 	, mIndexCount(0)
 	, mTextShader(textShader)
+	, mLevelShader(levelShader)
 {
 	glCheck(glGenBuffers(1, &mVBO));
 	glCheck(glGenBuffers(1, &mEBO));
@@ -79,6 +81,49 @@ BatchRenderer::draw(const std::string &text, glm::vec2 pos, Font &font, glm::vec
 	                     mSimpleVertices.data(),
 	                     GL_STREAM_DRAW));
 	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0));
+	drawBuffers();
+}
+
+void
+BatchRenderer::draw(const GameLevel &level)
+{
+	static const std::uint16_t indices[] = { 0, 1, 2, 1, 3, 2 };
+	static const glm::vec2 units[] = {
+		{ 0.f, 0.f },
+		{ 0.f, 1.f },
+		{ 1.f, 0.f },
+		{ 1.f, 1.f },
+	};
+	static const glm::vec2 uvSize = {128.f/1024.f, 1.f};
+	static const glm::vec2 uvPos = {128.f/1024.f, 0.f};
+
+	mSimpleVertices.clear();
+	beginBatch();
+	glm::vec2 brickSize = level.getBrickSize();
+	for (const auto &b : level.mBricks)
+	{
+		if (b.dead)
+		{
+			continue;
+		}
+		reserve(4, indices);
+		for (auto unit : units)
+		{
+			mSimpleVertices.push_back(
+				glm::vec4(brickSize * unit + b.position,
+				          uvSize * unit + uvPos * b.type));
+		}
+	}
+	endBatch();
+	bindBuffers();
+	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0));
+	glCheck(glBufferData(GL_ARRAY_BUFFER,
+	                     mSimpleVertices.size() * sizeof(mSimpleVertices[0]),
+	                     mSimpleVertices.data(),
+	                     GL_STREAM_DRAW));
+
+	mLevelShader.use();
+	level.getTexture().bind(0);
 	drawBuffers();
 }
 

@@ -11,7 +11,6 @@
 #include "particle.hpp"
 #include "postprocess.hpp"
 #include "particlerenderer.hpp"
-#include "levelrenderer.hpp"
 #include "spriterenderer.hpp"
 
 namespace
@@ -135,14 +134,15 @@ Game::Game()
 		500);
 
 	// blocks shader and level renderer
-	auto blocksShader = mShaders.get(ShaderID::Blocks);
-	blocksShader.use();
-	blocksShader.getUniform("image").setInteger(0);
-	blocksShader.getUniform("projection").setMatrix4(proj);
-	mLevelRenderer = std::make_unique<LevelRenderer>(blocksShader);
+	auto levelShader = mShaders.get(ShaderID::Blocks);
+	levelShader.use();
+	levelShader.getUniform("image").setInteger(0);
+	levelShader.getUniform("projection").setMatrix4(proj);
 
 	// batch renderer
-	mBatchRenderer = std::make_unique<BatchRenderer>(textShader);
+	mBatchRenderer = std::make_unique<BatchRenderer>(
+		textShader,
+		levelShader);
 }
 
 Game::~Game()
@@ -348,7 +348,7 @@ void Game::render()
 		renderer->draw(background, glm::vec2(0.0f),
 		               glm::vec2(ScreenWidth, ScreenHeight));
 
-		mLevelRenderer->draw(*mBatchRenderer, Levels[Level]);
+		mBatchRenderer->draw(Levels[Level]);
 
 		player->Draw(*renderer);
 		for (PowerUP &p : this->PowerUPs) {

@@ -10,15 +10,18 @@
 #include "shader.hpp"
 
 class Font;
+class GameLevel;
 
 class BatchRenderer
 {
 public:
-	explicit BatchRenderer(const Shader &textShader);
+	BatchRenderer(const Shader &textShader, const Shader &levelShader);
 	~BatchRenderer();
 
 	void draw(const std::string &text, glm::vec2 pos,
 	          Font &font, glm::vec3 color = glm::vec3(1.0f));
+
+	void draw(const GameLevel &level);
 
 	void reserve(unsigned vcount, std::span<const std::uint16_t> indices);
 
@@ -47,6 +50,7 @@ private:
 	unsigned mIndexCount;
 
 	Shader mTextShader;
+	Shader mLevelShader;
 
 	GLuint mVAO;
 	GLuint mVBO;
