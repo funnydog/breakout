@@ -38,14 +38,15 @@ GameLevel::load(const char *path, const Texture2D &texture, unsigned levelWidth,
 
 	auto height = tileData.size();
 	auto width = tileData[0].size();
-	GLfloat unit_width = static_cast<GLfloat>(levelWidth) / width;
-	GLfloat unit_height = static_cast<GLfloat>(levelHeight)  / height;
+	float unit_width = static_cast<float>(levelWidth / width);
+	float unit_height = static_cast<float>(levelHeight / height);
 	mBrickSize = glm::vec2(unit_width, unit_height);
 
-	glm::vec2 pos(0.0f);
+	float offset = static_cast<float>((levelWidth % width) / 2);
+	glm::vec2 pos(0.f);
 	for (decltype(height) y = 0; y < height; ++y, pos.y += unit_height)
 	{
-		pos.x = 0.f;
+		pos.x = offset;
 		for (decltype(width) x = 0; x < width; ++x, pos.x += unit_width)
 		{
 			Brick b{pos, 0, false, false};
