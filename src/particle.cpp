@@ -74,13 +74,13 @@ ParticleGen::draw()
 
         // draw the geometry
 	glCheck(glBindVertexArray(mVAO));
+	mTexture.bind(0);
 	for (const Particle &p : mParticles)
 	{
 		if (p.Life > 0.0f)
 		{
 			mShader.getUniform("offset").setVector2f(p.Position);
 			mShader.getUniform("color").setVector4f(p.Color);
-			mTexture.bind(0);
 			glCheck(glDrawArrays(GL_TRIANGLES, 0, 6));
 		}
 	}
