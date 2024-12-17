@@ -1,7 +1,5 @@
 #include <iostream>
 
-#include <glm/gtc/matrix_transform.hpp>
-
 #include "font.hpp"
 #include "glcheck.hpp"
 #include "textrenderer.hpp"
