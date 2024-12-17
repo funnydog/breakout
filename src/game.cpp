@@ -351,8 +351,7 @@ void Game::render()
 
 		auto background = mTextures.get(TextureID::Background);
 		renderer->draw(background, glm::vec2(0.0f),
-		               glm::vec2(ScreenWidth, ScreenHeight),
-		               0.0f);
+		               glm::vec2(ScreenWidth, ScreenHeight));
 		Levels[Level].Draw(*renderer);
 		player->Draw(*renderer);
 		for (PowerUP &p : this->PowerUPs) {

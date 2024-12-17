@@ -13,7 +13,6 @@ public:
 	glm::vec2 Size;
 	glm::vec2 Velocity;
 	glm::vec3 Color;
-	GLfloat Rotation;
 	GLboolean IsSolid;
 	GLboolean Destroyed;
 
