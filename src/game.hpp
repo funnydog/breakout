@@ -16,7 +16,6 @@ class BallObject;
 class ParticleGen;
 class Postprocess;
 class ParticleRenderer;
-class TextRenderer;
 class LevelRenderer;
 
 class Game
@@ -61,7 +60,6 @@ private:
 	std::unique_ptr<BallObject> ball;
 	std::unique_ptr<ParticleGen> particles;
 	std::unique_ptr<Postprocess> effects;
-	std::unique_ptr<TextRenderer> text;
 	float shakeTime;
 
 private:
