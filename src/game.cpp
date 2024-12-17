@@ -129,7 +129,7 @@ Game::Game()
 	levelShader.getUniform("projection").setMatrix4(proj);
 
 	// make the batch renderer
-	mBatchRenderer = std::make_unique<BatchRenderer>(
+	mRenderer = std::make_unique<BatchRenderer>(
 		textShader,
 		levelShader,
 		particleShader,
@@ -342,21 +342,21 @@ void Game::render()
 		this->effects->BeginRender();
 
 		auto background = mTextures.get(TextureID::Background);
-		mBatchRenderer->draw(background, glm::vec2(0.0f),
+		mRenderer->draw(background, glm::vec2(0.0f),
 		                     glm::vec2(ScreenWidth, ScreenHeight));
 
-		mBatchRenderer->draw(Levels[Level]);
+		mRenderer->draw(Levels[Level]);
 
-		mBatchRenderer->draw(player->Sprite, player->Position, player->Size, player->Color);
+		mRenderer->draw(player->Sprite, player->Position, player->Size, player->Color);
 		//player->Draw(*renderer);
 		for (PowerUP &p : this->PowerUPs) {
 			if (!p.Destroyed)
-				mBatchRenderer->draw(p.Sprite, p.Position, p.Size, p.Color);
+				mRenderer->draw(p.Sprite, p.Position, p.Size, p.Color);
 		}
 
-		mBatchRenderer->draw(*particles);
+		mRenderer->draw(*particles);
 
-		mBatchRenderer->draw(ball->Sprite, ball->Position, ball->Size, ball->Color);
+		mRenderer->draw(ball->Sprite, ball->Position, ball->Size, ball->Color);
 		//ball->Draw(*renderer);
 
 		effects->EndRender();
@@ -364,21 +364,21 @@ void Game::render()
 
 		std::stringstream ss;
 		ss << "Lives: " << this->Lives;
-		mBatchRenderer->draw(ss.str(), {5.0f, 5.0f}, font);
+		mRenderer->draw(ss.str(), {5.0f, 5.0f}, font);
 	}
 
 	if (State == State::GAME_MENU) {
-		mBatchRenderer->draw("Press ENTER to start", {250.0f, ScreenHeight / 2}, font);
+		mRenderer->draw("Press ENTER to start", {250.0f, ScreenHeight / 2}, font);
 
 		auto &small = mFonts.get(FontID::Subtitle);
-		mBatchRenderer->draw("Press W or S to select level", {245.0f, ScreenHeight/2 + 20.0f}, small);
+		mRenderer->draw("Press W or S to select level", {245.0f, ScreenHeight/2 + 20.0f}, small);
 	}
 
 	if (State == State::GAME_WIN) {
-		mBatchRenderer->draw("You WON!!!",
+		mRenderer->draw("You WON!!!",
 		                      {320.0f, ScreenHeight / 2 - 20.0f},
 		                      font, glm::vec3(0.0f, 1.0f, 0.0f));
-		mBatchRenderer->draw("Press ENTER to retry or ESC to quit",
+		mRenderer->draw("Press ENTER to retry or ESC to quit",
 		                     {130.0f, ScreenHeight / 2,},
 		                     font, glm::vec3(1.0f, 1.0f, 0.0f));
 	}
