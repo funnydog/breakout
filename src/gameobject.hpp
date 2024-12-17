@@ -4,7 +4,6 @@
 #include <glm/glm.hpp>
 
 #include "texture.hpp"
-#include "spriterenderer.hpp"
 
 class GameObject
 {
@@ -18,8 +17,5 @@ public:
 
 	Texture2D Sprite;
 
-	virtual ~GameObject();
 	GameObject(glm::vec2 pos, glm::vec2 size, Texture2D sprite, glm::vec3 color = glm::vec3(1.0f), glm::vec2 vel = glm::vec2(0.0f));
-
-	virtual void Draw(SpriteRenderer &renderer);
 };

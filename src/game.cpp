@@ -10,7 +10,6 @@
 #include "glcheck.hpp"
 #include "particle.hpp"
 #include "postprocess.hpp"
-#include "spriterenderer.hpp"
 
 namespace
 {
@@ -103,25 +102,17 @@ Game::Game()
 		static_cast<GLfloat>(ScreenHeight), 0.0f,
 		-1.0f, 1.0f);
 
+	// configure the sprite shader
 	auto spriteShader = mShaders.get(ShaderID::Sprite);
 	spriteShader.use();
 	spriteShader.getUniform("projection").setMatrix4(proj);
 
-	// sprite renderer
-	renderer = std::make_unique<SpriteRenderer>(spriteShader);
-
-	// text shader and renderer
+	// configure the text shader
 	auto textShader = mShaders.get(ShaderID::Text);
 	textShader.use();
 	textShader.getUniform("projection").setMatrix4(proj);
 
-	// set-up the effects
-	effects = std::make_unique<Postprocess>(
-		mShaders.get(ShaderID::Postprocess),
-		ScreenWidth,
-		ScreenHeight);
-
-	// particle shader
+	// configure the particle shader
 	auto particleShader = mShaders.get(ShaderID::Particle);
 	particleShader.use();
 	particleShader.getUniform("sprite").setInteger(0);
@@ -131,17 +122,24 @@ Game::Game()
 		mTextures.get(TextureID::Particle),
 		500);
 
-	// level shader
+	// configure the level shader
 	auto levelShader = mShaders.get(ShaderID::Blocks);
 	levelShader.use();
 	levelShader.getUniform("image").setInteger(0);
 	levelShader.getUniform("projection").setMatrix4(proj);
 
-	// batch renderer
+	// make the batch renderer
 	mBatchRenderer = std::make_unique<BatchRenderer>(
 		textShader,
 		levelShader,
-		particleShader);
+		particleShader,
+		spriteShader);
+
+	// set-up the effects
+	effects = std::make_unique<Postprocess>(
+		mShaders.get(ShaderID::Postprocess),
+		ScreenWidth,
+		ScreenHeight);
 }
 
 Game::~Game()
@@ -344,20 +342,22 @@ void Game::render()
 		this->effects->BeginRender();
 
 		auto background = mTextures.get(TextureID::Background);
-		renderer->draw(background, glm::vec2(0.0f),
-		               glm::vec2(ScreenWidth, ScreenHeight));
+		mBatchRenderer->draw(background, glm::vec2(0.0f),
+		                     glm::vec2(ScreenWidth, ScreenHeight));
 
 		mBatchRenderer->draw(Levels[Level]);
 
-		player->Draw(*renderer);
+		mBatchRenderer->draw(player->Sprite, player->Position, player->Size, player->Color);
+		//player->Draw(*renderer);
 		for (PowerUP &p : this->PowerUPs) {
 			if (!p.Destroyed)
-				p.Draw(*renderer);
+				mBatchRenderer->draw(p.Sprite, p.Position, p.Size, p.Color);
 		}
 
 		mBatchRenderer->draw(*particles);
 
-		ball->Draw(*renderer);
+		mBatchRenderer->draw(ball->Sprite, ball->Position, ball->Size, ball->Color);
+		//ball->Draw(*renderer);
 
 		effects->EndRender();
 		effects->Render(glfwGetTime());

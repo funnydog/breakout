@@ -20,7 +20,8 @@ static const glm::vec2 units[] = {
 
 BatchRenderer::BatchRenderer(const Shader &textShader,
                              const Shader &levelShader,
-                             const Shader &particleShader)
+                             const Shader &particleShader,
+                             const Shader &spriteShader)
 	: mVertexOffset(0)
 	, mVertexCount(0)
 	, mIndexOffset(0)
@@ -28,6 +29,7 @@ BatchRenderer::BatchRenderer(const Shader &textShader,
 	, mTextShader(textShader)
 	, mLevelShader(levelShader)
 	, mParticleShader(particleShader)
+	, mSpriteShader(spriteShader)
 {
 	glCheck(glGenBuffers(1, &mVBO));
 	glCheck(glGenBuffers(1, &mEBO));
@@ -176,6 +178,33 @@ BatchRenderer::draw(const ParticleGen &pg)
 	glCheck(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
 	glCheck(glDisableVertexAttribArray(1));
+}
+
+void
+BatchRenderer::draw(Texture2D texture, glm::vec2 position, glm::vec2 size, glm::vec3 color)
+{
+	mSimpleVertices.clear();
+	beginBatch();
+	reserve(4, indices);
+	for (auto unit : units)
+	{
+		SimpleVertex v;
+		v.pos = size * unit + position;
+		v.uv = unit;
+		mSimpleVertices.push_back(v);
+	}
+	endBatch();
+	bindBuffers();
+	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0));
+	glCheck(glBufferData(GL_ARRAY_BUFFER,
+	                     mSimpleVertices.size()*sizeof(mSimpleVertices[0]),
+	                     mSimpleVertices.data(),
+	                     GL_STREAM_DRAW));
+	mSpriteShader.use();
+	mSpriteShader.getUniform("spriteColor").setVector3f(color);
+
+	texture.bind(0);
+	drawBuffers();
 }
 
 void

@@ -5,7 +5,6 @@
 
 #include "texture.hpp"
 #include "shader.hpp"
-#include "spriterenderer.hpp"
 
 class Postprocess
 {

@@ -25,7 +25,6 @@ executable(
     'particle.cpp',
     'postprocess.cpp',
     'shader.cpp',
-    'spriterenderer.cpp',
     'stb_image.cpp',
     'texture.cpp',
     'utility.cpp',

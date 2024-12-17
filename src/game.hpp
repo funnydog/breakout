@@ -50,7 +50,6 @@ public:
 	void UpdatePowerUPs(float dt);
 
 private:
-	std::unique_ptr<SpriteRenderer> renderer;
 	std::unique_ptr<BatchRenderer> mBatchRenderer;
 	std::unique_ptr<GameObject> player;
 	std::unique_ptr<BallObject> ball;

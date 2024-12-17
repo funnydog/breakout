@@ -12,13 +12,15 @@
 class Font;
 class GameLevel;
 class ParticleGen;
+class Texture2D;
 
 class BatchRenderer
 {
 public:
 	BatchRenderer(const Shader &textShader,
 	              const Shader &levelShader,
-	              const Shader &particleShader);
+	              const Shader &particleShader,
+	              const Shader &spriteShader);
 	~BatchRenderer();
 
 	void draw(const std::string &text, glm::vec2 pos,
@@ -27,6 +29,9 @@ public:
 	void draw(const GameLevel &level);
 
 	void draw(const ParticleGen &pg);
+
+	void draw(Texture2D texture, glm::vec2 pos, glm::vec2 size,
+	          glm::vec3 color = glm::vec3(1.0f));
 
 private:
 	void reserve(unsigned vcount, std::span<const std::uint16_t> indices);
@@ -71,6 +76,7 @@ private:
 	Shader mTextShader;
 	Shader mLevelShader;
 	Shader mParticleShader;
+	Shader mSpriteShader;
 
 	GLuint mVAO;
 	GLuint mVBO;
