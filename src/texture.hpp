@@ -11,7 +11,7 @@ public:
 	bool loadFromFile(const std::filesystem::path &path);
 	bool create(unsigned width, unsigned height,
 	            const void *pixels=nullptr,
-	            bool repeat=false, bool smooth=false) noexcept;
+	            bool repeat=false, bool smooth=true) noexcept;
 
 	void update(const void *pixels);
 	void update(const void *pixels,
