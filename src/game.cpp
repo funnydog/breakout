@@ -58,12 +58,12 @@ Game::Game()
 	}
 	glfwMakeContextCurrent(mWindow);
 	glewExperimental = GL_TRUE;
-	glCheck(glewInit());
 
-	glViewport(0, 0, ScreenWidth, ScreenHeight);
-	glEnable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glCheck(glewInit());
+	glCheck(glViewport(0, 0, ScreenWidth, ScreenHeight));
+	glCheck(glEnable(GL_CULL_FACE));
+	glCheck(glEnable(GL_BLEND));
+	glCheck(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
 	mEventQueue.track(mWindow);
 
