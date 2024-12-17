@@ -654,8 +654,6 @@ Game::loadAssets()
 	mTextures.load(TextureID::Face, "assets/textures/awesomeface.png");
 	mTextures.load(TextureID::Background, "assets/textures/background.jpg");
 	mTextures.load(TextureID::Blocks, "assets/textures/blocks.png");
-	mTextures.load(TextureID::Block, "assets/textures/block.png");
-	mTextures.load(TextureID::BlockSolid, "assets/textures/block_solid.png");
 	mTextures.load(TextureID::Paddle, "assets/textures/paddle.png");
 	mTextures.load(TextureID::Particle, "assets/textures/particle.png");
 	mTextures.load(TextureID::PowerupSpeed, "assets/textures/powerup_speed.png");

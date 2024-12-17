@@ -20,8 +20,6 @@ enum class TextureID
 	Face,
 	Background,
 	Blocks,
-	Block,
-	BlockSolid,
 	Paddle,
 	Particle,
 	PowerupSpeed,
