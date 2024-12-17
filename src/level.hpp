@@ -6,8 +6,6 @@
 #include <glm/glm.hpp>
 
 #include "batchrenderer.hpp"
-#include "resources.hpp"
-#include "resourceholder.hpp"
 #include "texture.hpp"
 
 struct Brick
@@ -18,16 +16,12 @@ struct Brick
 	bool dead;
 };
 
-class GameLevel
+struct GameLevel
 {
-public:
 	bool load(const char *path, unsigned width, unsigned height);
-	void draw(BatchRenderer &renderer);
-	bool isCompleted();
-
 	std::vector<Brick> mBricks;
 	glm::vec2 mBrickSize;
 
-private:
-	std::vector<glm::vec4> mVertices;
+	void draw(BatchRenderer &renderer);
+	bool isCompleted() const;
 };

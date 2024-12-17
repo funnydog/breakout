@@ -66,50 +66,8 @@ GameLevel::load(const char *path, unsigned levelWidth, unsigned levelHeight)
 	return true;
 }
 
-void
-GameLevel::draw(BatchRenderer &br)
-{
-	static const std::uint16_t indices[] = { 0, 1, 2, 1, 3, 2 };
-	static const glm::vec2 unit[] = {
-		{ 0.f, 0.f },
-		{ 0.f, 1.f },
-		{ 1.f, 0.f },
-		{ 1.f, 1.f },
-	};
-	static const glm::vec2 uvSize = {128.f/1024.f, 1.f};
-	static const glm::vec2 uvPos = {128.f/1024.f, 0.f};
-
-	mVertices.clear();
-	br.beginBatch();
-	for (const auto &b : mBricks)
-	{
-		if (!b.dead)
-		{
-			br.reserve(4, indices);
-			for (int i = 0; i < 4; i++)
-			{
-				mVertices.push_back(
-					glm::vec4(mBrickSize*unit[i] + b.position,
-					          uvSize*unit[i] + uvPos * b.type));
-			}
-		}
-	}
-	br.endBatch();
-
-	br.bindBuffers();
-
-	// upload the data
-	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0));
-	glCheck(glBufferData(GL_ARRAY_BUFFER,
-	                     mVertices.size() * sizeof(mVertices[0]),
-	                     mVertices.data(),
-	                     GL_STREAM_DRAW));
-
-	br.drawBuffers();
-}
-
 bool
-GameLevel::isCompleted()
+GameLevel::isCompleted() const
 {
 	return std::all_of(mBricks.begin(), mBricks.end(), [](const auto &b) {
 		return b.solid || b.dead;
