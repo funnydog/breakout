@@ -7,6 +7,17 @@
 
 #include "batchrenderer.hpp"
 
+namespace
+{
+static const std::uint16_t indices[] = { 0, 1, 2, 1, 3, 2 };
+static const glm::vec2 units[] = {
+	{ 0.f, 0.f },
+	{ 0.f, 1.f },
+	{ 1.f, 0.f },
+	{ 1.f, 1.f },
+};
+}
+
 BatchRenderer::BatchRenderer(const Shader &textShader,
                              const Shader &levelShader,
                              const Shader &particleShader)
@@ -52,14 +63,6 @@ BatchRenderer::draw(const std::string &text, glm::vec2 pos, Font &font, glm::vec
 	mTextShader.getUniform("textColor").setVector3f(color);
 	font.getTexture().bind(0);
 
-	static const std::uint16_t indices[] = { 0, 1, 2, 1, 3, 2 };
-	static const glm::vec2 units[] = {
-		{ 0.f, 0.f },
-		{ 0.f, 1.f },
-		{ 1.f, 0.f },
-		{ 1.f, 1.f },
-	};
-
 	mSimpleVertices.clear();
 	beginBatch();
 	pos.y += font.getLineHeight();
@@ -92,13 +95,6 @@ BatchRenderer::draw(const std::string &text, glm::vec2 pos, Font &font, glm::vec
 void
 BatchRenderer::draw(const GameLevel &level)
 {
-	static const std::uint16_t indices[] = { 0, 1, 2, 1, 3, 2 };
-	static const glm::vec2 units[] = {
-		{ 0.f, 0.f },
-		{ 0.f, 1.f },
-		{ 1.f, 0.f },
-		{ 1.f, 1.f },
-	};
 	static const glm::vec2 uvSize = {128.f/1024.f, 1.f};
 	static const glm::vec2 uvPos = {128.f/1024.f, 0.f};
 
@@ -135,14 +131,6 @@ BatchRenderer::draw(const GameLevel &level)
 void
 BatchRenderer::draw(const ParticleGen &pg)
 {
-	static const std::uint16_t indices[] = { 0, 1, 2, 1, 3, 2 };
-	static const glm::vec2 units[] = {
-		{ 0.f, 0.f },
-		{ 0.f, 1.f },
-		{ 1.f, 0.f },
-		{ 1.f, 1.f },
-	};
-
 	mParticleVertices.clear();
 	auto size = pg.getParticleSize();
 	beginBatch();
