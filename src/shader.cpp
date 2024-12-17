@@ -232,7 +232,7 @@ Shader::getUniform(const std::string& name) const
 ShaderAttrib
 Shader::getAttrib(const std::string& name) const
 {
-	GLint loc = glGetAttribLocation(this->mProgram, name.c_str());
+	GLint loc = glGetAttribLocation(mProgram, name.c_str());
 	if (loc == -1)
 	{
 		throw std::runtime_error("Shader::getAttrib(\"" + name + "\") failed");
