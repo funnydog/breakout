@@ -99,11 +99,11 @@ GameLevel::draw(BatchRenderer &br)
 	br.bindBuffers();
 
 	// upload the data
+	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0));
 	glCheck(glBufferData(GL_ARRAY_BUFFER,
 	                     mVertices.size() * sizeof(mVertices[0]),
 	                     mVertices.data(),
 	                     GL_STREAM_DRAW));
-	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0));
 
 	br.drawBuffers();
 }

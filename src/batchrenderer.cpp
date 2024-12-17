@@ -9,18 +9,11 @@ BatchRenderer::BatchRenderer()
 	, mIndexOffset(0)
 	, mIndexCount(0)
 {
-        // TODO: set the initial shader uniforms
-
-	// create the EBO and VBO
 	glCheck(glGenBuffers(1, &mVBO));
 	glCheck(glGenBuffers(1, &mEBO));
-
-	// create a VAO and save the relevant state
 	glCheck(glGenVertexArrays(1, &mVAO));
 	glCheck(glBindVertexArray(mVAO));
 	glCheck(glEnableVertexAttribArray(0));
-	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0));
-	glCheck(glBindVertexArray(0));
 }
 
 BatchRenderer::~BatchRenderer()
@@ -59,7 +52,6 @@ BatchRenderer::reserve(unsigned vcount, std::span<const std::uint16_t> indices)
 void
 BatchRenderer::beginBatch()
 {
-	// reset the data
 	mIndices.clear();
 	mBatches.clear();
 	mVertexOffset = mVertexCount = 0;
@@ -77,13 +69,13 @@ BatchRenderer::bindBuffers() const
 {
 	glCheck(glBindVertexArray(mVAO));
 	glCheck(glBindBuffer(GL_ARRAY_BUFFER, mVBO));
-	glCheck(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO));
 }
 
 void
 BatchRenderer::drawBuffers() const
 {
 	// upload the indices
+	glCheck(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO));
 	glCheck(glBufferData(GL_ELEMENT_ARRAY_BUFFER,
 			     mIndices.size() * sizeof(mIndices[0]),
 			     mIndices.data(),
@@ -99,5 +91,4 @@ BatchRenderer::drawBuffers() const
 			        reinterpret_cast<GLvoid*>(batch.indexOffset),
 			        batch.vertexOffset));
 	}
-	glCheck(glBindVertexArray(0));
 }
