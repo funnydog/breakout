@@ -1,5 +1,6 @@
 #include "level.hpp"
 
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 
@@ -90,12 +91,7 @@ GameLevel::Draw(SpriteRenderer &renderer)
 bool
 GameLevel::IsCompleted()
 {
-	for (const auto &obj : Bricks)
-	{
-		if (!obj.IsSolid && !obj.Destroyed)
-		{
-			return false;
-		}
-	}
-	return true;
+	return std::all_of(Bricks.begin(), Bricks.end(), [](const auto &b) {
+		return b.IsSolid || b.Destroyed;
+	});
 }
