@@ -29,7 +29,7 @@ roundUp2(unsigned v)
 Font::Font()
 	: mFT(nullptr)
 	, mFace(nullptr)
-	, mLineHeight(0)
+	, mLineHeight(0.f)
 	, mPositionX(0)
 	, mPositionY(0)
 	, mMaxHeight(0)
@@ -62,8 +62,8 @@ Font::loadFromFile(const std::filesystem::path &path, unsigned size)
 	}
 	FT_Set_Pixel_Sizes(mFace, 0, size);
 
-	mLineHeight = static_cast<int>((mFace->size->metrics.ascender -
-					mFace->size->metrics.descender) >> 6);
+	mLineHeight = static_cast<float>(mFace->size->metrics.ascender -
+	                                 mFace->size->metrics.descender) / 64.f;
 	mGlyphs.clear();
 	mPositionX = mPositionY = mMaxHeight = 0;
 

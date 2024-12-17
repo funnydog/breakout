@@ -49,7 +49,7 @@ private:
 
 	FT_Library mFT;
 	FT_Face mFace;
-	int mLineHeight;
+	float mLineHeight;
 	int mPositionX;
 	int mPositionY;
 	int mMaxHeight;
