@@ -121,7 +121,7 @@ Game::Game()
 		ScreenWidth,
 		ScreenHeight);
 
-	// particles and renderer
+	// particle shader
 	auto particleShader = mShaders.get(ShaderID::Particle);
 	particleShader.use();
 	particleShader.getUniform("sprite").setInteger(0);
@@ -131,7 +131,7 @@ Game::Game()
 		mTextures.get(TextureID::Particle),
 		500);
 
-	// blocks shader and level renderer
+	// level shader
 	auto levelShader = mShaders.get(ShaderID::Blocks);
 	levelShader.use();
 	levelShader.getUniform("image").setInteger(0);
