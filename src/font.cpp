@@ -70,58 +70,6 @@ Font::loadFromFile(const std::filesystem::path &path, unsigned size)
 	return true;
 }
 
-void
-Font::draw(TextRenderer &renderer, const std::string &text, glm::vec2 pos)
-{
-	if (text.empty())
-	{
-		return;
-	}
-
-	std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> cv;
-	for (auto codepoint: cv.from_bytes(text))
-	{
-		getGlyph(codepoint);
-	}
-	mTexture.bind(0);
-
-	static const std::uint16_t indices[] = { 0, 1, 2, 1, 3, 2 };
-	static const glm::vec2 unit[] = {
-		{ 0.f, 0.f },
-		{ 0.f, 1.f },
-		{ 1.f, 0.f },
-		{ 1.f, 1.f },
-	};
-	// static const glm::vec2 unit[] = {
-	// 	{ 0.f, 0.f },
-	// 	{ 0.f, 1.f },
-	// 	{ 1.f, 0.f },
-	// 	{ 0.f, 1.f },
-	// 	{ 1.f, 1.f },
-	// 	{ 1.f, 0.f },
-	// };
-
-	// glm::vec4 vertices[6];
-	pos.y += mLineHeight;
-	for (auto codepoint: cv.from_bytes(text))
-	{
-		const auto &g = getGlyph(codepoint);
-		pos.x += g.bearing.x;
-		pos.y -= g.bearing.y;
-		auto vertices = renderer.reserve(4, indices);
-		int i = 0;
-		for (auto &vertex : vertices)
-		{
-			vertex = glm::vec4(g.size*unit[i]+pos, g.uvSize*unit[i]+g.uvPos);
-			i++;
-		}
-		pos.x += g.advance - g.bearing.x;
-		pos.y += g.bearing.y;
-	}
-
-	renderer.draw();
-}
-
 glm::vec2
 Font::getSize(const std::string &text)
 {
@@ -162,7 +110,7 @@ Font::resizeTexture(unsigned newWidth, unsigned newHeight)
 	}
 }
 
-const Font::Glyph&
+const Glyph&
 Font::getGlyph(char32_t codepoint)
 {
 	if (const auto it = mGlyphs.find(codepoint); it != mGlyphs.end())
@@ -275,4 +223,16 @@ Font::getGlyph(char32_t codepoint)
 	mPositionX += bmWidth + 2 * PADDING;
 
 	return it->second;
+}
+
+const Texture2D &
+Font::getTexture() const
+{
+	return mTexture;
+}
+
+float
+Font::getLineHeight() const
+{
+	return mLineHeight;
 }

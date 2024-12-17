@@ -17,12 +17,8 @@ class TextRenderer
 public:
 	explicit TextRenderer(const Shader &s);
 
-	void draw(const std::string &text, glm::vec2 pos, Font &font, glm::vec3 color=glm::vec3(1.0f));
-
-	std::span<glm::vec4> reserve(unsigned vcount,
-	                             std::span<const std::uint16_t> indices);
-
-	void draw() noexcept;
+	void draw(const std::string &text, glm::vec2 pos,
+	          Font &font, glm::vec3 color=glm::vec3(1.0f));
 
 private:
 	std::vector<glm::vec4> mVertices;
