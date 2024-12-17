@@ -44,7 +44,13 @@ private:
 		unsigned indexCount;
 	};
 
-	struct ParticleVertex
+	struct SimpleVertex
+	{
+		glm::vec2 pos;
+		glm::vec2 uv;
+	};
+
+	struct ColorVertex
 	{
 		glm::vec2 pos;
 		glm::vec2 uv;
@@ -55,8 +61,8 @@ private:
 
 	std::vector<Batch> mBatches;
 	std::vector<std::uint16_t> mIndices;
-	std::vector<glm::vec4> mSimpleVertices;
-	std::vector<ParticleVertex> mParticleVertices;
+	std::vector<SimpleVertex> mSimpleVertices;
+	std::vector<ColorVertex> mColorVertices;
 	unsigned mVertexOffset;
 	unsigned mVertexCount;
 	unsigned mIndexOffset;

@@ -74,9 +74,10 @@ BatchRenderer::draw(const std::string &text, glm::vec2 pos, Font &font, glm::vec
 		reserve(4, indices);
 		for (auto unit : units)
 		{
-			mSimpleVertices.push_back(
-				glm::vec4(g.size*unit+pos,
-				          g.uvSize*unit+g.uvPos));
+			SimpleVertex v;
+			v.pos = g.size * unit + pos;
+			v.uv = g.uvSize * unit + g.uvPos;
+			mSimpleVertices.push_back(v);
 		}
 		pos.x += g.advance - g.bearing.x;
 		pos.y += g.bearing.y;
@@ -110,9 +111,10 @@ BatchRenderer::draw(const GameLevel &level)
 		reserve(4, indices);
 		for (auto unit : units)
 		{
-			mSimpleVertices.push_back(
-				glm::vec4(brickSize * unit + b.position,
-				          uvSize * unit + uvPos * b.type));
+			SimpleVertex v;
+			v.pos = brickSize * unit + b.position;
+			v.uv = uvSize * unit + uvPos * b.type;
+			mSimpleVertices.push_back(v);
 		}
 	}
 	endBatch();
@@ -131,35 +133,36 @@ BatchRenderer::draw(const GameLevel &level)
 void
 BatchRenderer::draw(const ParticleGen &pg)
 {
-	mParticleVertices.clear();
+	mColorVertices.clear();
 	auto size = pg.getParticleSize();
 	beginBatch();
 	for (const auto &p : pg.getParticles())
 	{
-		if (p.life > 0.f)
+		if (p.life <= 0.f)
 		{
-			reserve(4, indices);
-			for (auto unit : units)
-			{
-				ParticleVertex v;
-				v.pos = size * unit + p.position;
-				v.uv = unit;
-				v.color = p.color;
-				mParticleVertices.push_back(v);
-			}
+			continue;
+		}
+		reserve(4, indices);
+		for (auto unit : units)
+		{
+			ColorVertex v;
+			v.pos = size * unit + p.position;
+			v.uv = unit;
+			v.color = p.color;
+			mColorVertices.push_back(v);
 		}
 	}
 	endBatch();
 	bindBuffers();
 	glEnableVertexAttribArray(1);
 	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE,
-	                              sizeof(ParticleVertex), 0));
+	                              sizeof(ColorVertex), 0));
 	glCheck(glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE,
-	                              sizeof(ParticleVertex),
-	                              reinterpret_cast<GLvoid*>(offsetof(ParticleVertex, color))));
+	                              sizeof(ColorVertex),
+	                              reinterpret_cast<GLvoid*>(offsetof(ColorVertex, color))));
 	glCheck(glBufferData(GL_ARRAY_BUFFER,
-	                     mParticleVertices.size() * sizeof(mParticleVertices[0]),
-	                     mParticleVertices.data(),
+	                     mColorVertices.size() * sizeof(mColorVertices[0]),
+	                     mColorVertices.data(),
 	                     GL_STREAM_DRAW));
 	mParticleShader.use();
 	pg.getTexture().bind(0);
