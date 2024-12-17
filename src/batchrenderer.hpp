@@ -28,8 +28,8 @@ public:
 
 	void draw(const ParticleGen &pg);
 
+private:
 	void reserve(unsigned vcount, std::span<const std::uint16_t> indices);
-
 	void beginBatch();
 	void endBatch();
 
