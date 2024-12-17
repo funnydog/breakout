@@ -16,12 +16,23 @@ struct Brick
 	bool dead;
 };
 
-struct GameLevel
+class GameLevel
 {
-	bool load(const char *path, unsigned width, unsigned height);
-	std::vector<Brick> mBricks;
-	glm::vec2 mBrickSize;
-
+public:
+	bool load(const char *path, const Texture2D &texture, unsigned width, unsigned height);
 	void draw(BatchRenderer &renderer);
+
 	bool isCompleted() const;
+	void reset();
+
+	glm::vec2 getBrickSize() const;
+	const Texture2D& getTexture() const;
+
+public:
+	std::vector<Brick> mBricks;
+
+private:
+
+	glm::vec2 mBrickSize;
+	Texture2D mTexture;
 };

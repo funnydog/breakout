@@ -7,8 +7,9 @@
 #include "level.hpp"
 
 bool
-GameLevel::load(const char *path, unsigned levelWidth, unsigned levelHeight)
+GameLevel::load(const char *path, const Texture2D &texture, unsigned levelWidth, unsigned levelHeight)
 {
+	mTexture = texture;
 	mBricks.clear();
 
 	std::ifstream input(path);
@@ -72,4 +73,28 @@ GameLevel::isCompleted() const
 	return std::all_of(mBricks.begin(), mBricks.end(), [](const auto &b) {
 		return b.solid || b.dead;
 	});
+}
+
+void
+GameLevel::reset()
+{
+	for (auto &b : mBricks)
+	{
+		if (b.type != 0.f)
+		{
+			b.dead = false;
+		}
+	}
+}
+
+glm::vec2
+GameLevel::getBrickSize() const
+{
+	return mBrickSize;
+}
+
+const Texture2D&
+GameLevel::getTexture() const
+{
+	return mTexture;
 }

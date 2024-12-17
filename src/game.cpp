@@ -71,10 +71,11 @@ Game::Game()
 	loadAssets();
 
 	// load the levels
+	auto &blocksTex = mTextures.get(TextureID::Blocks);
 	for (const char *path : levels)
 	{
 		GameLevel level;
-		if (!level.load(path, ScreenWidth, ScreenHeight / 2))
+		if (!level.load(path, blocksTex, ScreenWidth, ScreenHeight / 2))
 		{
 			std::cerr << "Level '" << path << "' error\n";
 			continue;
@@ -241,15 +242,7 @@ Game::ResetLevel()
 {
 	if (0 <= this->Level && this->Level < 5)
 	{
-		GameLevel level;
-		if (!level.load(levels[this->Level], ScreenWidth, ScreenHeight / 2))
-		{
-			std::cerr << "Level '" << levels[this->Level] << "' error\n";
-		}
-		else
-		{
-			Levels[this->Level] = level;
-		}
+		Levels[this->Level].reset();
 	}
 	this->Lives = 3;
 }
@@ -354,7 +347,6 @@ void Game::render()
 		renderer->draw(background, glm::vec2(0.0f),
 		               glm::vec2(ScreenWidth, ScreenHeight));
 
-		mTextures.get(TextureID::Blocks).bind(0);
 		mLevelRenderer->draw(*mBatchRenderer, Levels[Level]);
 
 		player->Draw(*renderer);
@@ -477,7 +469,7 @@ void
 Game::DoCollisions()
 {
 	// bricks collisions
-	glm::vec2 size = this->Levels[this->Level].mBrickSize;
+	glm::vec2 size = this->Levels[this->Level].getBrickSize();
 	for (auto &obj : this->Levels[this->Level].mBricks)
 	{
 		if (obj.dead)

@@ -20,9 +20,9 @@ LevelRenderer::draw(BatchRenderer &br, const GameLevel &level)
 	static const glm::vec2 uvPos = {128.f/1024.f, 0.f};
 
 	mShader.use();
-	// set the texture
 	mVertices.clear();
 	br.beginBatch();
+	glm::vec2 brickSize = level.getBrickSize();
 	for (const auto &b : level.mBricks)
 	{
 		if (b.dead)
@@ -33,7 +33,7 @@ LevelRenderer::draw(BatchRenderer &br, const GameLevel &level)
 		for (auto unit : units)
 		{
 			mVertices.push_back(
-				glm::vec4(level.mBrickSize * unit + b.position,
+				glm::vec4(brickSize * unit + b.position,
 				          uvSize * unit + uvPos * b.type));
 		}
 	}
@@ -44,5 +44,7 @@ LevelRenderer::draw(BatchRenderer &br, const GameLevel &level)
 	                     mVertices.size() * sizeof(mVertices[0]),
 	                     mVertices.data(),
 	                     GL_STREAM_DRAW));
+
+	level.getTexture().bind(0);
 	br.drawBuffers();
 }
