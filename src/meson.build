@@ -27,7 +27,6 @@ executable(
     'shader.cpp',
     'spriterenderer.cpp',
     'stb_image.cpp',
-    'particlerenderer.cpp',
     'texture.cpp',
     'utility.cpp',
     asset_link,

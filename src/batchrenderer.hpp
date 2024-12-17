@@ -11,17 +11,22 @@
 
 class Font;
 class GameLevel;
+class ParticleGen;
 
 class BatchRenderer
 {
 public:
-	BatchRenderer(const Shader &textShader, const Shader &levelShader);
+	BatchRenderer(const Shader &textShader,
+	              const Shader &levelShader,
+	              const Shader &particleShader);
 	~BatchRenderer();
 
 	void draw(const std::string &text, glm::vec2 pos,
 	          Font &font, glm::vec3 color = glm::vec3(1.0f));
 
 	void draw(const GameLevel &level);
+
+	void draw(const ParticleGen &pg);
 
 	void reserve(unsigned vcount, std::span<const std::uint16_t> indices);
 
@@ -39,11 +44,19 @@ private:
 		unsigned indexCount;
 	};
 
+	struct ParticleVertex
+	{
+		glm::vec2 pos;
+		glm::vec2 uv;
+		glm::vec4 color;
+	};
+
 	void saveBatch();
 
 	std::vector<Batch> mBatches;
 	std::vector<std::uint16_t> mIndices;
 	std::vector<glm::vec4> mSimpleVertices;
+	std::vector<ParticleVertex> mParticleVertices;
 	unsigned mVertexOffset;
 	unsigned mVertexCount;
 	unsigned mIndexOffset;
@@ -51,6 +64,7 @@ private:
 
 	Shader mTextShader;
 	Shader mLevelShader;
+	Shader mParticleShader;
 
 	GLuint mVAO;
 	GLuint mVBO;

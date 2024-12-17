@@ -10,7 +10,6 @@
 #include "glcheck.hpp"
 #include "particle.hpp"
 #include "postprocess.hpp"
-#include "particlerenderer.hpp"
 #include "spriterenderer.hpp"
 
 namespace
@@ -127,7 +126,6 @@ Game::Game()
 	particleShader.use();
 	particleShader.getUniform("sprite").setInteger(0);
 	particleShader.getUniform("projection").setMatrix4(proj);
-	mParticleRenderer = std::make_unique<ParticleRenderer>(particleShader);
 
 	particles = std::make_unique<ParticleGen>(
 		mTextures.get(TextureID::Particle),
@@ -142,7 +140,8 @@ Game::Game()
 	// batch renderer
 	mBatchRenderer = std::make_unique<BatchRenderer>(
 		textShader,
-		levelShader);
+		levelShader,
+		particleShader);
 }
 
 Game::~Game()
@@ -356,7 +355,7 @@ void Game::render()
 				p.Draw(*renderer);
 		}
 
-		mParticleRenderer->draw(*mBatchRenderer, *particles);
+		mBatchRenderer->draw(*particles);
 
 		ball->Draw(*renderer);
 

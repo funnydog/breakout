@@ -15,7 +15,6 @@
 class BallObject;
 class ParticleGen;
 class Postprocess;
-class ParticleRenderer;
 
 class Game
 {
@@ -53,7 +52,6 @@ public:
 private:
 	std::unique_ptr<SpriteRenderer> renderer;
 	std::unique_ptr<BatchRenderer> mBatchRenderer;
-	std::unique_ptr<ParticleRenderer> mParticleRenderer;
 	std::unique_ptr<GameObject> player;
 	std::unique_ptr<BallObject> ball;
 	std::unique_ptr<ParticleGen> particles;

@@ -3,15 +3,20 @@
 #include "font.hpp"
 #include "glcheck.hpp"
 #include "level.hpp"
+#include "particle.hpp"
+
 #include "batchrenderer.hpp"
 
-BatchRenderer::BatchRenderer(const Shader &textShader, const Shader &levelShader)
+BatchRenderer::BatchRenderer(const Shader &textShader,
+                             const Shader &levelShader,
+                             const Shader &particleShader)
 	: mVertexOffset(0)
 	, mVertexCount(0)
 	, mIndexOffset(0)
 	, mIndexCount(0)
 	, mTextShader(textShader)
 	, mLevelShader(levelShader)
+	, mParticleShader(particleShader)
 {
 	glCheck(glGenBuffers(1, &mVBO));
 	glCheck(glGenBuffers(1, &mEBO));
@@ -125,6 +130,61 @@ BatchRenderer::draw(const GameLevel &level)
 	mLevelShader.use();
 	level.getTexture().bind(0);
 	drawBuffers();
+}
+
+void
+BatchRenderer::draw(const ParticleGen &pg)
+{
+	static const std::uint16_t indices[] = { 0, 1, 2, 1, 3, 2 };
+	static const glm::vec2 units[] = {
+		{ 0.f, 0.f },
+		{ 0.f, 1.f },
+		{ 1.f, 0.f },
+		{ 1.f, 1.f },
+	};
+
+	mParticleVertices.clear();
+	auto size = pg.getParticleSize();
+	beginBatch();
+	for (const auto &p : pg.getParticles())
+	{
+		if (p.life > 0.f)
+		{
+			reserve(4, indices);
+			for (auto unit : units)
+			{
+				ParticleVertex v;
+				v.pos = size * unit + p.position;
+				v.uv = unit;
+				v.color = p.color;
+				mParticleVertices.push_back(v);
+			}
+		}
+	}
+	endBatch();
+	bindBuffers();
+	glEnableVertexAttribArray(1);
+	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE,
+	                              sizeof(ParticleVertex), 0));
+	glCheck(glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE,
+	                              sizeof(ParticleVertex),
+	                              reinterpret_cast<GLvoid*>(offsetof(ParticleVertex, color))));
+	glCheck(glBufferData(GL_ARRAY_BUFFER,
+	                     mParticleVertices.size() * sizeof(mParticleVertices[0]),
+	                     mParticleVertices.data(),
+	                     GL_STREAM_DRAW));
+	mParticleShader.use();
+	pg.getTexture().bind(0);
+
+	// set an additive blending for the glow effect
+	glCheck(glBlendFunc(GL_SRC_ALPHA, GL_ONE));
+
+	drawBuffers();
+
+	// restore the previous blend function
+	glCheck(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
+
+	glCheck(glDisableVertexAttribArray(1));
 }
 
 void
