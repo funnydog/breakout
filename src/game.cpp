@@ -50,7 +50,9 @@ Game::Game()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-	mWindow = glfwCreateWindow(ScreenWidth, ScreenHeight, "Breakout", nullptr, nullptr);
+	mWindow = glfwCreateWindow(
+		ScreenWidth, ScreenHeight, "Breakout",
+		nullptr, nullptr);
 	if (!mWindow)
 	{
 		glfwGetError(&error);
@@ -398,8 +400,8 @@ typedef std::tuple<bool, Direction, glm::vec2> Collision;
 static Direction VectorDirection(glm::vec2 target)
 {
 	static const glm::vec2 compass[] = {
-		glm::vec2(0.0f, 1.0f), // UP
-		glm::vec2(1.0f, 0.0f), // RIGHT
+		glm::vec2(0.0f, 1.0f),  // UP
+		glm::vec2(1.0f, 0.0f),  // RIGHT
 		glm::vec2(0.0f, -1.0f), // DOWN
 		glm::vec2(-1.0f, 0.0f), // LEFT
 	};
