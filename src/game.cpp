@@ -10,6 +10,7 @@
 #include "glcheck.hpp"
 #include "particle.hpp"
 #include "postprocess.hpp"
+#include "particlerenderer.hpp"
 #include "levelrenderer.hpp"
 #include "spriterenderer.hpp"
 #include "textrenderer.hpp"
@@ -127,12 +128,14 @@ Game::Game()
 		ScreenWidth,
 		ScreenHeight);
 
+	// particles and renderer
 	auto particleShader = mShaders.get(ShaderID::Particle);
 	particleShader.use();
 	particleShader.getUniform("sprite").setInteger(0);
 	particleShader.getUniform("projection").setMatrix4(proj);
+	mParticleRenderer = std::make_unique<ParticleRenderer>(particleShader);
+
 	particles = std::make_unique<ParticleGen>(
-		particleShader,
 		mTextures.get(TextureID::Particle),
 		500);
 
@@ -354,7 +357,9 @@ void Game::render()
 			if (!p.Destroyed)
 				p.Draw(*renderer);
 		}
-		particles->draw();
+
+		mParticleRenderer->draw(*mBatchRenderer, *particles);
+
 		ball->Draw(*renderer);
 
 		effects->EndRender();

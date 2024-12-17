@@ -5,35 +5,34 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-#include "shader.hpp"
 #include "texture.hpp"
+
+struct Particle
+{
+	glm::vec2 position;
+	glm::vec2 velocity;
+	glm::vec4 color;
+	float life = 0.f;
+};
 
 class ParticleGen
 {
 public:
-	ParticleGen(const Shader &shader, Texture2D texture, unsigned amount);
-	~ParticleGen();
+	ParticleGen(Texture2D texture, unsigned amount);
 
 	void update(GLfloat dt, unsigned newParticles, glm::vec2 pos, glm::vec2 vel);
-	void draw();
+
+	const std::vector<Particle> &getParticles() const;
+	const Texture2D &getTexture() const;
+	glm::vec2 getParticleSize() const;
+
 private:
-	struct Particle
-	{
-		glm::vec2 Position;
-		glm::vec2 Velocity;
-		glm::vec4 Color;
-		float Life;
-		Particle() : Position(0.0f), Velocity(0.0f), Color(1.0f), Life(0.0f) { }
-	};
 
 	unsigned firstUnusedParticle();
 	void respawnParticle(Particle &particle, glm::vec2 pos, glm::vec2 vel);
 
 	std::vector<Particle> mParticles;
-	Shader mShader;
 	Texture2D mTexture;
-	GLuint mAmount;
-	GLuint mVAO;
-	GLuint mVBO;
-	GLuint mLastUsedParticle;
+	unsigned mAmount;
+	unsigned mLastUsedParticle;
 };
