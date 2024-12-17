@@ -28,9 +28,6 @@ static const char *levels[] = {
 	"assets/levels/four.txt",
 };
 
-const std::uint64_t targetFPS = 60;
-const float SecondsPerFrame = 1.f / targetFPS;
-const int MaxStepsPerFrame = 5;
 const unsigned ScreenWidth = 800;
 const unsigned ScreenHeight = 600;
 }
@@ -144,26 +141,16 @@ Game::~Game()
 void
 Game::run()
 {
-	const std::uint64_t deltaTicks = glfwGetTimerFrequency() / targetFPS;
-	std::uint64_t currentTicks = glfwGetTimerValue();
-	std::uint64_t accumulator = 0;
-
+	auto currentTime = glfwGetTime();
 	while (!glfwWindowShouldClose(mWindow))
 	{
-		auto newTicks = glfwGetTimerValue();
-		accumulator += newTicks - currentTicks;
-		currentTicks = newTicks;
+		auto newTime = glfwGetTime();
+		auto frameTime = newTime - currentTime;
+		currentTime = newTime;
 
-		for (int steps = MaxStepsPerFrame;
-		     steps > 0 && accumulator >= deltaTicks;
-		     --steps, accumulator -= deltaTicks)
-		{
-			processInput();
-			update(SecondsPerFrame);
-		}
+		processInput();
+		update(frameTime);
 
-		glClearColor(0.f, 0.f, 0.2f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
 		render();
 		glfwSwapBuffers(mWindow);
 	}
