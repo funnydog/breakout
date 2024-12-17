@@ -1,10 +1,7 @@
 #pragma once
 
-#include <cstdint>
-#include <span>
 #include <vector>
 
-#include <GL/glew.h>
 #include <glm/glm.hpp>
 
 #include "batchrenderer.hpp"
