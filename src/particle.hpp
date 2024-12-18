@@ -18,8 +18,7 @@ struct Particle
 class ParticleGen
 {
 public:
-	ParticleGen(Texture2D texture, unsigned amount);
-
+	void set(Texture2D tex, unsigned amount);
 	void update(GLfloat dt, unsigned newParticles, glm::vec2 pos, glm::vec2 vel);
 
 	const std::vector<Particle> &getParticles() const;
@@ -27,12 +26,12 @@ public:
 	glm::vec2 getParticleSize() const;
 
 private:
-
 	unsigned firstUnusedParticle();
 	void respawnParticle(Particle &particle, glm::vec2 pos, glm::vec2 vel);
 
+private:
 	std::vector<Particle> mParticles;
 	Texture2D mTexture;
-	unsigned mAmount;
-	unsigned mLastUsedParticle;
+	unsigned mAmount = 0;
+	unsigned mLastUsedParticle = 0;
 };

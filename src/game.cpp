@@ -118,9 +118,7 @@ Game::Game()
 	particleShader.getUniform("sprite").setInteger(0);
 	particleShader.getUniform("projection").setMatrix4(proj);
 
-	particles = std::make_unique<ParticleGen>(
-		mTextures.get(TextureID::Particle),
-		500);
+	mBallParticles.set(mTextures.get(TextureID::Particle), 500);
 
 	// configure the level shader
 	auto levelShader = mShaders.get(ShaderID::Blocks);
@@ -308,9 +306,9 @@ Game::update(GLfloat dt)
 	this->ball->Move(dt, ScreenWidth);
 	this->DoCollisions();
 
-	this->particles->update(dt, 2,
-	                        ball->Position + glm::vec2(ball->Radius/2.f),
-	                        ball->Velocity);
+	mBallParticles.update(dt, 2,
+	                      ball->Position + glm::vec2(ball->Radius/2.f),
+	                      ball->Velocity);
 
 	this->UpdatePowerUPs(dt);
 
@@ -367,7 +365,7 @@ void Game::render()
 			}
 		}
 
-		mRenderer->draw(*particles);
+		mRenderer->draw(mBallParticles);
 
 		mRenderer->draw(ball->Sprite, ball->Position, ball->Size, ball->Color);
 

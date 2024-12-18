@@ -1,13 +1,12 @@
 #include "glcheck.hpp"
 #include "particle.hpp"
 
-ParticleGen::ParticleGen(Texture2D texture, unsigned amount)
-	: mParticles()
-	, mTexture(texture)
-	, mAmount(amount)
-	, mLastUsedParticle(0)
+void
+ParticleGen::set(Texture2D tex, unsigned amount)
 {
-	mParticles.resize(mAmount, Particle());
+	mTexture = tex;
+	mAmount = amount;
+	mParticles.resize(mAmount);
 }
 
 void
