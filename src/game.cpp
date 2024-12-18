@@ -721,17 +721,24 @@ void
 Game::loadAssets()
 {
         // textures
-	mTextures.load(TextureID::Face, "assets/textures/awesomeface.png");
-	mTextures.load(TextureID::Background, "assets/textures/background.jpg");
-	mTextures.load(TextureID::Blocks, "assets/textures/blocks.png");
-	mTextures.load(TextureID::Paddle, "assets/textures/paddle.png");
-	mTextures.load(TextureID::Particle, "assets/textures/particle.png");
-	mTextures.load(TextureID::PowerupSpeed, "assets/textures/powerup_speed.png");
-	mTextures.load(TextureID::PowerupSticky, "assets/textures/powerup_sticky.png");
-	mTextures.load(TextureID::PowerupIncrease, "assets/textures/powerup_increase.png");
-	mTextures.load(TextureID::PowerupConfuse, "assets/textures/powerup_confuse.png");
-	mTextures.load(TextureID::PowerupChaos, "assets/textures/powerup_chaos.png");
-	mTextures.load(TextureID::PowerupPassthrough, "assets/textures/powerup_passthrough.png");
+	static const std::pair<TextureID, std::filesystem::path> textures[] = {
+		{ TextureID::Face, "assets/textures/awesomeface.png" },
+		{ TextureID::Background, "assets/textures/background.jpg" },
+		{ TextureID::Blocks, "assets/textures/blocks.png" },
+		{ TextureID::Paddle, "assets/textures/paddle.png" },
+		{ TextureID::Particle, "assets/textures/particle.png" },
+		{ TextureID::PowerupSpeed, "assets/textures/powerup_speed.png" },
+		{ TextureID::PowerupSticky, "assets/textures/powerup_sticky.png" },
+		{ TextureID::PowerupIncrease, "assets/textures/powerup_increase.png" },
+		{ TextureID::PowerupConfuse, "assets/textures/powerup_confuse.png" },
+		{ TextureID::PowerupChaos, "assets/textures/powerup_chaos.png" },
+		{ TextureID::PowerupPassthrough, "assets/textures/powerup_passthrough.png" },
+	};
+
+	for (auto &[id, path] : textures)
+	{
+		mTextures.load(id, path);
+	}
 
 	// shaders
 	mShaders.load(ShaderID::Sprite,
