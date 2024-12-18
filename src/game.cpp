@@ -579,37 +579,38 @@ static bool shouldSpawn(unsigned chance)
 void
 Game::SpawnPowerUPs(glm::vec2 pos)
 {
-	if (shouldSpawn(75)) {
+	if (shouldSpawn(75))
+	{
 		PowerUPs.emplace_back(
 			PowerUP::SPEED, glm::vec3(0.5f, 0.5f, 1.0f), 0.0f, pos,
 			mTextures.get(TextureID::PowerupSpeed));
 	}
-
-	if (shouldSpawn(75)) {
+	else if (shouldSpawn(75))
+	{
 		PowerUPs.emplace_back(
 			PowerUP::STICKY, glm::vec3(1.0f, 0.5f, 1.0f), 20.0f, pos,
 			mTextures.get(TextureID::PowerupSticky));
 	}
-
-	if (shouldSpawn(75)) {
+	else if (shouldSpawn(75))
+	{
 		PowerUPs.emplace_back(
 			PowerUP::PASSTHROUGH, glm::vec3(0.5f, 1.0f, 0.5f), 10.0f, pos,
 			mTextures.get(TextureID::PowerupPassthrough));
 	}
-
-	if (shouldSpawn(75)) {
+	else if (shouldSpawn(75))
+	{
 		PowerUPs.emplace_back(
 			PowerUP::PAD_INCREASE, glm::vec3(1.0f, 0.6f, 0.4f), 0.0f, pos,
 			mTextures.get(TextureID::PowerupIncrease));
 	}
-
-	if (shouldSpawn(15)) {
+	else if (shouldSpawn(15))
+	{
 		PowerUPs.emplace_back(
 			PowerUP::CONFUSE, glm::vec3(1.0f, 0.3f, 0.3f), 15.0f, pos,
 			mTextures.get(TextureID::PowerupConfuse));
 	}
-
-	if (shouldSpawn(15)) {
+	else if (shouldSpawn(15))
+	{
 		PowerUPs.emplace_back(
 			PowerUP::CHAOS, glm::vec3(0.9f, 0.25f, 0.25f), 15.0f, pos,
 			mTextures.get(TextureID::PowerupChaos));
