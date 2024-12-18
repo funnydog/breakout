@@ -5,7 +5,7 @@
 #include "level.hpp"
 #include "particle.hpp"
 
-#include "batchrenderer.hpp"
+#include "renderer.hpp"
 
 namespace
 {
@@ -18,7 +18,7 @@ static const glm::vec2 units[] = {
 };
 }
 
-BatchRenderer::BatchRenderer(const Shader &textShader,
+Renderer::Renderer(const Shader &textShader,
                              const Shader &levelShader,
                              const Shader &particleShader,
                              const Shader &spriteShader)
@@ -38,7 +38,7 @@ BatchRenderer::BatchRenderer(const Shader &textShader,
 	glCheck(glEnableVertexAttribArray(0));
 }
 
-BatchRenderer::~BatchRenderer()
+Renderer::~Renderer()
 {
 	glCheck(glBindVertexArray(0));
 	glCheck(glDeleteVertexArrays(1, &mVAO));
@@ -47,7 +47,7 @@ BatchRenderer::~BatchRenderer()
 }
 
 void
-BatchRenderer::draw(const std::string &text, glm::vec2 pos, Font &font, glm::vec3 color)
+Renderer::draw(const std::string &text, glm::vec2 pos, Font &font, glm::vec3 color)
 {
 	if (text.empty())
 	{
@@ -96,7 +96,7 @@ BatchRenderer::draw(const std::string &text, glm::vec2 pos, Font &font, glm::vec
 }
 
 void
-BatchRenderer::draw(const GameLevel &level)
+Renderer::draw(const GameLevel &level)
 {
 	static const glm::vec2 uvSize = {128.f/1024.f, 1.f};
 	static const glm::vec2 uvPos = {128.f/1024.f, 0.f};
@@ -133,7 +133,7 @@ BatchRenderer::draw(const GameLevel &level)
 }
 
 void
-BatchRenderer::draw(const ParticleGen &pg)
+Renderer::draw(const ParticleGen &pg)
 {
 	mColorVertices.clear();
 	auto size = pg.getParticleSize();
@@ -181,7 +181,7 @@ BatchRenderer::draw(const ParticleGen &pg)
 }
 
 void
-BatchRenderer::draw(Texture2D texture, glm::vec2 position, glm::vec2 size, glm::vec3 color)
+Renderer::draw(Texture2D texture, glm::vec2 position, glm::vec2 size, glm::vec3 color)
 {
 	mSimpleVertices.clear();
 	beginBatch();
@@ -208,7 +208,7 @@ BatchRenderer::draw(Texture2D texture, glm::vec2 position, glm::vec2 size, glm::
 }
 
 void
-BatchRenderer::saveBatch()
+Renderer::saveBatch()
 {
 	mBatches.emplace_back(mVertexOffset, mIndexOffset, mIndexCount-mIndexOffset);
 	mVertexOffset = mVertexCount;
@@ -216,7 +216,7 @@ BatchRenderer::saveBatch()
 }
 
 void
-BatchRenderer::reserve(unsigned vcount, std::span<const std::uint16_t> indices)
+Renderer::reserve(unsigned vcount, std::span<const std::uint16_t> indices)
 {
 	auto base = mVertexCount - mVertexOffset;
 	if (base + vcount > UINT16_MAX)
@@ -233,7 +233,7 @@ BatchRenderer::reserve(unsigned vcount, std::span<const std::uint16_t> indices)
 }
 
 void
-BatchRenderer::beginBatch()
+Renderer::beginBatch()
 {
 	mIndices.clear();
 	mBatches.clear();
@@ -242,20 +242,20 @@ BatchRenderer::beginBatch()
 }
 
 void
-BatchRenderer::endBatch()
+Renderer::endBatch()
 {
 	saveBatch();
 }
 
 void
-BatchRenderer::bindBuffers() const
+Renderer::bindBuffers() const
 {
 	glCheck(glBindVertexArray(mVAO));
 	glCheck(glBindBuffer(GL_ARRAY_BUFFER, mVBO));
 }
 
 void
-BatchRenderer::drawBuffers() const
+Renderer::drawBuffers() const
 {
 	// upload the indices
 	glCheck(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO));

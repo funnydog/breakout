@@ -129,7 +129,7 @@ Game::Game()
 	levelShader.getUniform("projection").setMatrix4(proj);
 
 	// make the batch renderer
-	mRenderer = std::make_unique<BatchRenderer>(
+	mRenderer = std::make_unique<Renderer>(
 		textShader,
 		levelShader,
 		particleShader,
@@ -338,26 +338,30 @@ Game::update(GLfloat dt)
 void Game::render()
 {
 	auto &font = mFonts.get(FontID::Title);
-	if (this->State == State::GAME_ACTIVE || this->State == State::GAME_MENU) {
+	if (this->State == State::GAME_ACTIVE || this->State == State::GAME_MENU)
+	{
 		this->effects->BeginRender();
 
 		auto background = mTextures.get(TextureID::Background);
-		mRenderer->draw(background, glm::vec2(0.0f),
-		                     glm::vec2(ScreenWidth, ScreenHeight));
+		mRenderer->draw(background,
+		                glm::vec2(0.0f),
+		                glm::vec2(ScreenWidth, ScreenHeight));
 
 		mRenderer->draw(Levels[Level]);
 
 		mRenderer->draw(player->Sprite, player->Position, player->Size, player->Color);
-		//player->Draw(*renderer);
-		for (PowerUP &p : this->PowerUPs) {
+
+		for (PowerUP &p : this->PowerUPs)
+		{
 			if (!p.Destroyed)
+			{
 				mRenderer->draw(p.Sprite, p.Position, p.Size, p.Color);
+			}
 		}
 
 		mRenderer->draw(*particles);
 
 		mRenderer->draw(ball->Sprite, ball->Position, ball->Size, ball->Color);
-		//ball->Draw(*renderer);
 
 		effects->EndRender();
 		effects->Render(glfwGetTime());
@@ -367,14 +371,16 @@ void Game::render()
 		mRenderer->draw(ss.str(), {5.0f, 5.0f}, font);
 	}
 
-	if (State == State::GAME_MENU) {
+	if (State == State::GAME_MENU)
+	{
 		mRenderer->draw("Press ENTER to start", {250.0f, ScreenHeight / 2}, font);
 
 		auto &small = mFonts.get(FontID::Subtitle);
 		mRenderer->draw("Press W or S to select level", {245.0f, ScreenHeight/2 + 20.0f}, small);
 	}
 
-	if (State == State::GAME_WIN) {
+	if (State == State::GAME_WIN)
+	{
 		mRenderer->draw("You WON!!!",
 		                      {320.0f, ScreenHeight / 2 - 20.0f},
 		                      font, glm::vec3(0.0f, 1.0f, 0.0f));

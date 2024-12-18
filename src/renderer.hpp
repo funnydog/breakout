@@ -14,14 +14,14 @@ class GameLevel;
 class ParticleGen;
 class Texture2D;
 
-class BatchRenderer
+class Renderer
 {
 public:
-	BatchRenderer(const Shader &textShader,
+	Renderer(const Shader &textShader,
 	              const Shader &levelShader,
 	              const Shader &particleShader,
 	              const Shader &spriteShader);
-	~BatchRenderer();
+	~Renderer();
 
 	void draw(const std::string &text, glm::vec2 pos,
 	          Font &font, glm::vec3 color = glm::vec3(1.0f));

@@ -5,7 +5,7 @@
 #include <GL/glew.h>
 #include <glm/glm.hpp>
 
-#include "batchrenderer.hpp"
+#include "renderer.hpp"
 #include "texture.hpp"
 
 struct Brick
@@ -20,7 +20,7 @@ class GameLevel
 {
 public:
 	bool load(const char *path, const Texture2D &texture, unsigned width, unsigned height);
-	void draw(BatchRenderer &renderer);
+	void draw(Renderer &renderer);
 
 	bool isCompleted() const;
 	void reset();

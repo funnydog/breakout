@@ -50,7 +50,7 @@ public:
 	void UpdatePowerUPs(float dt);
 
 private:
-	std::unique_ptr<BatchRenderer> mRenderer;
+	std::unique_ptr<Renderer> mRenderer;
 	std::unique_ptr<GameObject> player;
 	std::unique_ptr<BallObject> ball;
 	std::unique_ptr<ParticleGen> particles;
