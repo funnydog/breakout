@@ -13,11 +13,12 @@
 
 namespace
 {
-static constexpr glm::vec2 PLAYER_SIZE(100, 20);
-static constexpr glm::vec2 PLAYER_VELOCITY(500.f, 0.f);
+static constexpr glm::vec2 PlayerSize(100, 20);
+static constexpr glm::vec2 PlayerVelocity(500.f, 0.f);
+static constexpr glm::vec2 InitialBallVelocity(100.0f, -350.0f);
+static constexpr float BallRadius = 12.5f;
 
-static constexpr glm::vec2 INITIAL_BALL_VELOCITY(100.0f, -350.0f);
-static constexpr float BALL_RADIUS = 12.5f;
+static constexpr unsigned InitialLives = 3;
 
 static const char *levels[] = {
 	"assets/levels/one.txt",
@@ -31,8 +32,12 @@ const unsigned ScreenHeight = 600;
 }
 
 Game::Game()
-	: State(State::GAME_MENU), Level(0), Lives(3),
-	  shakeTime(0.0f), mWindow(nullptr), mKeys()
+	: mState(State::Menu)
+	, mShakeTime(0.0f)
+	, mCurrentLevel(0)
+	, mLives(InitialLives)
+	, mWindow(nullptr)
+	, mKeys()
 {
 	const char *error;
 	if (!glfwInit())
@@ -67,36 +72,7 @@ Game::Game()
 	// load the assets
 	loadAssets();
 
-	// load the levels
-	auto &blocksTex = mTextures.get(TextureID::Blocks);
-	for (const char *path : levels)
-	{
-		GameLevel level;
-		if (!level.load(path, blocksTex, ScreenWidth, ScreenHeight / 2))
-		{
-			std::cerr << "Level '" << path << "' error\n";
-			continue;
-		}
-		Levels.push_back(level);
-	}
-
-	// player, ball and game shader
-	glm::vec2 playerPos = glm::vec2(
-		ScreenWidth / 2 - PLAYER_SIZE.x / 2,
-		ScreenHeight - PLAYER_SIZE.y);
-
-	player = std::make_unique<GameObject>(
-		playerPos, PLAYER_SIZE,
-		mTextures.get(TextureID::Paddle));
-
-	glm::vec2 ballPos = playerPos + glm::vec2(
-		PLAYER_SIZE.x / 2 - BALL_RADIUS,
-		-BALL_RADIUS * 2);
-
-	ball = std::make_unique<BallObject>(
-		ballPos, BALL_RADIUS, INITIAL_BALL_VELOCITY,
-		mTextures.get(TextureID::Face));
-
+	// create the orthographic projection matrix
 	glm::mat4 proj = glm::ortho(
 		0.0f, static_cast<GLfloat>(ScreenWidth),
 		static_cast<GLfloat>(ScreenHeight), 0.0f,
@@ -118,10 +94,6 @@ Game::Game()
 	particleShader.getUniform("sprite").setInteger(0);
 	particleShader.getUniform("projection").setMatrix4(proj);
 
-	particles = std::make_unique<ParticleGen>(
-		mTextures.get(TextureID::Particle),
-		500);
-
 	// configure the level shader
 	auto levelShader = mShaders.get(ShaderID::Blocks);
 	levelShader.use();
@@ -136,10 +108,46 @@ Game::Game()
 		spriteShader);
 
 	// set-up the effects
-	effects = std::make_unique<Postprocess>(
+	mEffects = std::make_unique<Postprocess>(
 		mShaders.get(ShaderID::Postprocess),
 		ScreenWidth,
 		ScreenHeight);
+
+	// levels
+	auto &blocksTex = mTextures.get(TextureID::Blocks);
+	for (const char *path : levels)
+	{
+		GameLevel level;
+		if (!level.load(path, blocksTex, ScreenWidth, ScreenHeight / 2))
+		{
+			std::cerr << "Level '" << path << "' error\n";
+			continue;
+		}
+		mLevels.push_back(level);
+	}
+
+	// player
+	glm::vec2 playerPos = glm::vec2(
+		ScreenWidth / 2 - PlayerSize.x / 2,
+		ScreenHeight - PlayerSize.y);
+
+	mPlayer = std::make_unique<GameObject>(
+		playerPos, PlayerSize,
+		mTextures.get(TextureID::Paddle));
+
+	// ball
+	glm::vec2 ballPos = playerPos + glm::vec2(
+		PlayerSize.x / 2 - BallRadius,
+		-BallRadius * 2);
+
+	mBall = std::make_unique<BallObject>(
+		ballPos, BallRadius, InitialBallVelocity,
+		mTextures.get(TextureID::Face));
+
+	// ball particles
+	mBallParticles = std::make_unique<ParticleGen>(
+		mTextures.get(TextureID::Particle),
+		500);
 }
 
 Game::~Game()
@@ -180,9 +188,9 @@ Game::processInput()
 void
 Game::handleEvent(const Event &event)
 {
-	switch (State)
+	switch (mState)
 	{
-	case State::GAME_ACTIVE:
+	case State::Active:
 		if (const auto ep(std::get_if<KeyPressed>(&event)); ep)
 		{
 			switch (ep->key)
@@ -200,19 +208,19 @@ Game::handleEvent(const Event &event)
 			mKeys[ep->key] = GL_FALSE;
 		}
 		break;
-	case State::GAME_MENU:
+	case State::Menu:
 		if (const auto ep(std::get_if<KeyPressed>(&event)); ep)
 		{
 			switch (ep->key)
 			{
 			case GLFW_KEY_ENTER:
-				State = State::GAME_ACTIVE;
+				mState = State::Active;
 				break;
 			case GLFW_KEY_W:
-				Level = (Level + 1) % 4;
+				mCurrentLevel = (mCurrentLevel + 1) % mLevels.size();
 				break;
 			case GLFW_KEY_S:
-				Level = (Level + 3) % 4;
+				mCurrentLevel = (mCurrentLevel + mLevels.size()-1) % mLevels.size();
 				break;
 			case GLFW_KEY_ESCAPE:
 				glfwSetWindowShouldClose(ep->window, GLFW_TRUE);
@@ -220,14 +228,14 @@ Game::handleEvent(const Event &event)
 			}
 		}
 		break;
-	case State::GAME_WIN:
+	case State::Win:
 		if (const auto ep(std::get_if<KeyPressed>(&event)); ep)
 		{
 			switch (ep->key)
 			{
 			case GLFW_KEY_ENTER:
-				effects->Chaos = false;
-				State = State::GAME_MENU;
+				mEffects->Chaos = false;
+				mState = State::Menu;
 				break;
 			case GLFW_KEY_ESCAPE:
 				glfwSetWindowShouldClose(ep->window, GLFW_TRUE);
@@ -236,132 +244,101 @@ Game::handleEvent(const Event &event)
 		}
 		break;
 	}
-}
-
-void
-Game::ResetLevel()
-{
-	if (0 <= this->Level && this->Level < 5)
-	{
-		Levels[this->Level].reset();
-	}
-	this->Lives = 3;
-}
-
-void
-Game::ResetPlayer()
-{
-	this->player->Size = PLAYER_SIZE;
-	this->player->Position = glm::vec2(
-		ScreenWidth / 2 - PLAYER_SIZE.x / 2,
-		ScreenHeight - PLAYER_SIZE.y);
-	this->player->Color = glm::vec3(1.0f);
-	this->ball->Reset(
-		this->player->Position + glm::vec2(
-			PLAYER_SIZE.x / 2 - BALL_RADIUS,
-			-BALL_RADIUS * 2),
-		INITIAL_BALL_VELOCITY);
-	this->ball->PassThrough = false;
-	this->ball->Sticky = false;
-	this->ball->Color = glm::vec3(1.0f);
-	this->effects->Chaos = false;
-	this->effects->Confuse = false;
 }
 
 void
 Game::update(GLfloat dt)
 {
-	if (State != State::GAME_ACTIVE)
+	if (mState != State::Active)
 	{
 		return;
 	}
 
 	// update the paddle
-	auto vel = PLAYER_VELOCITY * dt;
+	auto vel = PlayerVelocity * dt;
 	if (mKeys[GLFW_KEY_A])
 	{
-		if (player->Position.x >= 0.f)
+		if (mPlayer->Position.x >= 0.f)
 		{
-			player->Position -= vel;
-			if (ball->Stuck)
+			mPlayer->Position -= vel;
+			if (mBall->Stuck)
 			{
-				ball->Position -= vel;
+				mBall->Position -= vel;
 			}
 		}
 	}
 
 	if (mKeys[GLFW_KEY_D])
 	{
-		if (player->Position.x+player->Size.x < ScreenWidth)
+		if (mPlayer->Position.x + mPlayer->Size.x < ScreenWidth)
 		{
-			player->Position += vel;
-			if (ball->Stuck)
+			mPlayer->Position += vel;
+			if (mBall->Stuck)
 			{
-				ball->Position += vel;
+				mBall->Position += vel;
 			}
 		}
 	}
 	if (mKeys[GLFW_KEY_SPACE])
 	{
-		ball->Stuck = false;
+		mBall->Stuck = false;
 	}
 
 	// update the ball
-	this->ball->Move(dt, ScreenWidth);
-	this->DoCollisions();
+	mBall->Move(dt, ScreenWidth);
+	doCollisions();
 
-	this->particles->update(dt, 2,
-	                        ball->Position + glm::vec2(ball->Radius/2.f),
-	                        ball->Velocity);
+	mBallParticles->update(dt, 2,
+	                   mBall->Position + glm::vec2(mBall->Radius/2.f),
+	                   mBall->Velocity);
 
-	this->UpdatePowerUPs(dt);
+	updatePowerUPs(dt);
 
-	if (this->shakeTime > 0.0f)
+	if (mShakeTime > 0.f)
 	{
-		this->shakeTime -= dt;
-		if (this->shakeTime <= 0.0f)
+		mShakeTime -= dt;
+		if (mShakeTime <= 0.0f)
 		{
-			this->effects->Shake = false;
+			mEffects->Shake = false;
 		}
 	}
 
-	if (this->ball->Position.y >= ScreenHeight)
+	if (mBall->Position.y >= ScreenHeight)
 	{
-		--this->Lives;
-		if (this->Lives == 0)
+		if (--mLives == 0)
 		{
-			this->ResetLevel();
-			this->State = State::GAME_ACTIVE;
+			resetLevel();
+			mState = State::Menu;
 		}
-		this->ResetPlayer();
+		resetPlayer();
 	}
 
-	if (this->State == State::GAME_ACTIVE && this->Levels[this->Level].isCompleted())
+	if(mLevels[mCurrentLevel].isCompleted())
 	{
-		this->ResetLevel();
-		this->ResetPlayer();
-		this->effects->Chaos = true;
-		this->State = State::GAME_WIN;
+		resetLevel();
+		resetPlayer();
+		mEffects->Chaos = true;
+		mState = State::Win;
 	}
 }
 
 void Game::render()
 {
 	auto &font = mFonts.get(FontID::Title);
-	if (this->State == State::GAME_ACTIVE || this->State == State::GAME_MENU)
+	if (mState == State::Active || mState == State::Menu)
 	{
-		this->effects->BeginRender();
+		mEffects->BeginRender();
 
 		auto background = mTextures.get(TextureID::Background);
 		mRenderer->draw(background,
 		                glm::vec2(0.0f),
 		                glm::vec2(ScreenWidth, ScreenHeight));
 
-		mRenderer->draw(Levels[Level]);
+		mRenderer->draw(mLevels[mCurrentLevel]);
 
-		mRenderer->draw(player->Sprite, player->Position, player->Size, player->Color);
+		mRenderer->draw(mPlayer->Sprite, mPlayer->Position, mPlayer->Size, mPlayer->Color);
 
-		for (PowerUP &p : this->PowerUPs)
+		for (PowerUP &p : mPowerUPs)
 		{
 			if (!p.Destroyed)
 			{
@@ -369,19 +346,19 @@ void Game::render()
 			}
 		}
 
-		mRenderer->draw(*particles);
+		mRenderer->draw(*mBallParticles);
 
-		mRenderer->draw(ball->Sprite, ball->Position, ball->Size, ball->Color);
+		mRenderer->draw(mBall->Sprite, mBall->Position, mBall->Size, mBall->Color);
 
-		effects->EndRender();
-		effects->Render(glfwGetTime());
+		mEffects->EndRender();
+		mEffects->Render(glfwGetTime());
 
 		std::stringstream ss;
-		ss << "Lives: " << this->Lives;
+		ss << "Lives: " << mLives;
 		mRenderer->draw(ss.str(), {5.0f, 5.0f}, font);
 	}
 
-	if (State == State::GAME_MENU)
+	if (mState == State::Menu)
 	{
 		mRenderer->draw("Press ENTER to start", {250.0f, ScreenHeight / 2}, font);
 
@@ -389,7 +366,7 @@ void Game::render()
 		mRenderer->draw("Press W or S to select level", {245.0f, ScreenHeight/2 + 20.0f}, small);
 	}
 
-	if (State == State::GAME_WIN)
+	if (mState == State::Win)
 	{
 		mRenderer->draw("You WON!!!",
 		                      {320.0f, ScreenHeight / 2 - 20.0f},
@@ -400,15 +377,78 @@ void Game::render()
 	}
 }
 
-enum Direction
+void
+Game::resetLevel()
 {
-	UP,
-	RIGHT,
-	DOWN,
-	LEFT,
+	mLevels[mCurrentLevel].reset();
+	mLives = InitialLives;
+}
+
+void
+Game::resetPlayer()
+{
+	mPlayer->Size = PlayerSize;
+	mPlayer->Position = glm::vec2(
+		ScreenWidth / 2 - PlayerSize.x / 2,
+		ScreenHeight - PlayerSize.y);
+	mPlayer->Color = glm::vec3(1.0f);
+
+	mBall->Reset(
+		mPlayer->Position + glm::vec2(
+			PlayerSize.x / 2 - BallRadius,
+			-BallRadius * 2),
+		InitialBallVelocity);
+	mBall->PassThrough = false;
+	mBall->Sticky = false;
+	mBall->Color = glm::vec3(1.0f);
+
+	mEffects->Chaos = false;
+	mEffects->Confuse = false;
+}
+
+void
+Game::activatePowerUP(PowerUP &p)
+{
+	switch (p.Type)
+	{
+	case PowerUP::SPEED:
+		mBall->Velocity *= 1.2;
+		break;
+	case PowerUP::STICKY:
+		mBall->Sticky = true;
+		mPlayer->Color = glm::vec3(1.0f, 0.5f, 1.0f);
+		break;
+	case PowerUP::PASSTHROUGH:
+		mBall->PassThrough = true;
+		mBall->Color = glm::vec3(1.0f, 0.5f, 0.5f);
+		break;
+	case PowerUP::PAD_INCREASE:
+		mPlayer->Size.x += 50;
+		break;
+	case PowerUP::CONFUSE:
+		if (!mEffects->Chaos)
+		{
+			mEffects->Confuse = true;
+		}
+		break;
+	case PowerUP::CHAOS:
+		if (!mEffects->Confuse)
+		{
+			mEffects->Chaos = true;
+		}
+		break;
+	}
+}
+
+enum class Direction
+{
+	Up,
+	Right,
+	Down,
+	Left,
 };
 
-static Direction VectorDirection(glm::vec2 target)
+static Direction getDirection(glm::vec2 target)
 {
 	static const glm::vec2 compass[] = {
 		glm::vec2(0.0f, 1.0f),  // UP
@@ -418,7 +458,6 @@ static Direction VectorDirection(glm::vec2 target)
 	};
 	float max = 0.0f;
 	int best_match = 0;
-//	glm::vec2 normal = glm::normalize(target);
 	for (int i = 0; i < 4; i++)
 	{
 		float dot = glm::dot(target, compass[i]);
@@ -433,7 +472,7 @@ static Direction VectorDirection(glm::vec2 target)
 
 typedef std::tuple<bool, Direction, glm::vec2> Collision;
 
-static Collision CheckCollision(const BallObject &a, glm::vec2 pos, glm::vec2 size)
+static Collision checkCollision(const BallObject &a, glm::vec2 pos, glm::vec2 size)
 {
 	glm::vec2 ball_center(a.Position + a.Radius);
 	glm::vec2 aabb_half_extents(size.x/2, size.y/2);
@@ -445,12 +484,13 @@ static Collision CheckCollision(const BallObject &a, glm::vec2 pos, glm::vec2 si
 	glm::vec2 closest = aabb_center + clamped;
 	difference = closest - ball_center;
 	if (glm::dot(difference, difference) < a.Radius * a.Radius)
-		return std::make_tuple(true, VectorDirection(difference), difference);
-	else
-		return std::make_tuple(false, UP, difference);
+	{
+		return std::make_tuple(true, getDirection(difference), difference);
+	}
+	return std::make_tuple(false, Direction::Up, difference);
 }
 
-static bool CheckCollision(GameObject &a, GameObject &b)
+static bool checkCollision(const GameObject &a, const GameObject &b)
 {
 	bool cx =
 		a.Position.x + a.Size.x >= b.Position.x &&
@@ -464,170 +504,154 @@ static bool CheckCollision(GameObject &a, GameObject &b)
 }
 
 void
-Game::ActivatePowerUP(PowerUP &p)
+Game::doCollisions()
 {
-	switch (p.Type)
-	{
-	case PowerUP::SPEED:
-		this->ball->Velocity *= 1.2;
-		break;
-	case PowerUP::STICKY:
-		this->ball->Sticky = true;
-		this->player->Color = glm::vec3(1.0f, 0.5f, 1.0f);
-		break;
-	case PowerUP::PASSTHROUGH:
-		this->ball->PassThrough = true;
-		this->ball->Color = glm::vec3(1.0f, 0.5f, 0.5f);
-		break;
-	case PowerUP::PAD_INCREASE:
-		this->player->Size.x += 50;
-		break;
-	case PowerUP::CONFUSE:
-		if (!this->effects->Chaos)
-		{
-			this->effects->Confuse = true;
-		}
-		break;
-	case PowerUP::CHAOS:
-		if (!this->effects->Confuse)
-		{
-			this->effects->Chaos = true;
-		}
-		break;
-	}
-}
-
-void
-Game::DoCollisions()
-{
-	// bricks collisions
-	glm::vec2 size = this->Levels[this->Level].getBrickSize();
-	for (auto &obj : this->Levels[this->Level].mBricks)
+	// ball bricks collision
+	glm::vec2 size = mLevels[mCurrentLevel].getBrickSize();
+	for (auto &obj : mLevels[mCurrentLevel].mBricks)
 	{
 		if (obj.dead)
 		{
 			continue;
 		}
 
-		Collision c = CheckCollision(*ball, obj.position, size);
-		if (std::get<0>(c))
+		auto [col, dir, vec] = checkCollision(*mBall, obj.position, size);
+		if (!col)
 		{
-			if (!obj.solid)
+			continue;
+		}
+		if (!obj.solid)
+		{
+			obj.dead = true;
+			spawnPowerUPs(obj.position);
+		}
+		else
+		{
+			mShakeTime = 0.05f;
+			mEffects->Shake = true;
+		}
+
+		if (mBall->PassThrough && !obj.solid)
+		{
+			// nothing
+		}
+		else if (dir == Direction::Left || dir == Direction::Right)
+		{
+			mBall->Velocity.x = -mBall->Velocity.x;
+			float penetration = mBall->Radius - std::abs(vec.x);
+			if (dir == Direction::Left)
 			{
-				obj.dead = true;
-				this->SpawnPowerUPs(obj.position);
+				mBall->Position.x += penetration;
 			}
 			else
 			{
-				this->shakeTime = 0.05f;
-				this->effects->Shake = true;
+				mBall->Position.x -= penetration;
 			}
-
-			Direction dir = std::get<1>(c);
-			glm::vec2 difference = std::get<2>(c);
-			if ((this->ball->PassThrough && !obj.solid))
+		}
+		else
+		{
+			mBall->Velocity.y = -mBall->Velocity.y;
+			float penetration = mBall->Radius - std::abs(vec.y);
+			if (dir == Direction::Down)
 			{
-				// nothing
+				mBall->Position.y += penetration;
 			}
-			else if (dir == LEFT || dir == RIGHT)
+			else
 			{
-				this->ball->Velocity.x = -this->ball->Velocity.x;
-				float penetration = this->ball->Radius - std::abs(difference.x);
-				if (dir == LEFT)
-					this->ball->Position.x += penetration;
-				else
-					this->ball->Position.x -= penetration;
-			} else {
-				this->ball->Velocity.y = -this->ball->Velocity.y;
-				float penetration = this->ball->Radius - std::abs(difference.y);
-				if (dir == UP)
-					this->ball->Position.y -= penetration;
-				else
-					this->ball->Position.y += penetration;
+				mBall->Position.y -= penetration;
 			}
 		}
 	}
 
-	// this->player collision
-	if (!this->ball->Stuck) {
-		Collision c = CheckCollision(*this->ball, player->Position, player->Size);
-		if (std::get<0>(c)) {
-			float center = this->player->Position.x + this->player->Size.x / 2;
-			float distance = this->ball->Position.x + this->ball->Radius - center;
-			float percentage = distance / (this->player->Size.x / 2);
+	// ball player collision
+	if (!mBall->Stuck)
+	{
+		Collision c = checkCollision(*mBall, mPlayer->Position, mPlayer->Size);
+		if (std::get<0>(c))
+		{
+			float center = mPlayer->Position.x + mPlayer->Size.x / 2;
+			float distance = mBall->Position.x + mBall->Radius - center;
+			float percentage = distance / (mPlayer->Size.x / 2);
 
 			float strength = 2.0f;
 
-			glm::vec2 oldVelocity = this->ball->Velocity;
-			this->ball->Velocity.x = INITIAL_BALL_VELOCITY.x * percentage * strength;
-			this->ball->Velocity.y = -1.0f * std::abs(this->ball->Velocity.y);
-			this->ball->Velocity = glm::normalize(this->ball->Velocity) * glm::length(oldVelocity);
-			this->ball->Stuck = this->ball->Sticky;
+			glm::vec2 oldVelocity = mBall->Velocity;
+			mBall->Velocity.x = InitialBallVelocity.x * percentage * strength;
+			mBall->Velocity.y = -1.0f * std::abs(mBall->Velocity.y);
+			mBall->Velocity = glm::normalize(mBall->Velocity) * glm::length(oldVelocity);
+			mBall->Stuck = mBall->Sticky;
 		}
 	}
 
-	// Powerup collisions
-	for (PowerUP &p : this->PowerUPs) {
-		if (!p.Destroyed) {
-			if (p.Position.y >= ScreenHeight)
-				p.Destroyed = true;
-
-			if (CheckCollision(*this->player, p)) {
-				ActivatePowerUP(p);
-				p.Destroyed = true;
-				p.Activated = true;
-			}
+	// powerup player collision
+	for (PowerUP &p : mPowerUPs)
+	{
+		if (p.Destroyed)
+		{
+			// nothing
+		}
+		else if (p.Position.y >= ScreenHeight)
+		{
+			p.Destroyed = true;
+		}
+		else if (checkCollision(*mPlayer, p))
+		{
+			activatePowerUP(p);
+			p.Destroyed = true;
+			p.Activated = true;
 		}
 	}
 }
 
-static bool shouldSpawn(unsigned chance)
+static bool
+shouldSpawn(unsigned chance)
 {
 	return (rand() % chance) == 0;
 }
 
 void
-Game::SpawnPowerUPs(glm::vec2 pos)
+Game::spawnPowerUPs(glm::vec2 pos)
 {
 	if (shouldSpawn(75))
 	{
-		PowerUPs.emplace_back(
+		mPowerUPs.emplace_back(
 			PowerUP::SPEED, glm::vec3(0.5f, 0.5f, 1.0f), 0.0f, pos,
 			mTextures.get(TextureID::PowerupSpeed));
 	}
 	else if (shouldSpawn(75))
 	{
-		PowerUPs.emplace_back(
+		mPowerUPs.emplace_back(
 			PowerUP::STICKY, glm::vec3(1.0f, 0.5f, 1.0f), 20.0f, pos,
 			mTextures.get(TextureID::PowerupSticky));
 	}
 	else if (shouldSpawn(75))
 	{
-		PowerUPs.emplace_back(
+		mPowerUPs.emplace_back(
 			PowerUP::PASSTHROUGH, glm::vec3(0.5f, 1.0f, 0.5f), 10.0f, pos,
 			mTextures.get(TextureID::PowerupPassthrough));
 	}
 	else if (shouldSpawn(75))
 	{
-		PowerUPs.emplace_back(
+		mPowerUPs.emplace_back(
 			PowerUP::PAD_INCREASE, glm::vec3(1.0f, 0.6f, 0.4f), 0.0f, pos,
 			mTextures.get(TextureID::PowerupIncrease));
 	}
 	else if (shouldSpawn(15))
 	{
-		PowerUPs.emplace_back(
+		mPowerUPs.emplace_back(
 			PowerUP::CONFUSE, glm::vec3(1.0f, 0.3f, 0.3f), 15.0f, pos,
 			mTextures.get(TextureID::PowerupConfuse));
 	}
 	else if (shouldSpawn(15))
 	{
-		PowerUPs.emplace_back(
+		mPowerUPs.emplace_back(
 			PowerUP::CHAOS, glm::vec3(0.9f, 0.25f, 0.25f), 15.0f, pos,
 			mTextures.get(TextureID::PowerupChaos));
 	}
 }
 
-static bool isOtherPowerUPActive(const std::vector<PowerUP> &powerups, enum PowerUP::Type type)
+static bool
+isOtherPowerUPActive(const std::vector<PowerUP> &powerups, enum PowerUP::Type type)
 {
 	return std::any_of(powerups.begin(), powerups.end(), [type](const auto &p) {
 		return p.Activated && p.Type == type;
@@ -635,9 +659,9 @@ static bool isOtherPowerUPActive(const std::vector<PowerUP> &powerups, enum Powe
 }
 
 void
-Game::UpdatePowerUPs(float dt)
+Game::updatePowerUPs(float dt)
 {
-	for (PowerUP &p : this->PowerUPs)
+	for (PowerUP &p : mPowerUPs)
 	{
 		p.Position += p.Velocity * dt;
 		if (!p.Activated)
@@ -646,49 +670,51 @@ Game::UpdatePowerUPs(float dt)
 		}
 
 		p.Duration -= dt;
-		if (p.Duration <= 0.0f)
+		if (p.Duration > 0.0f)
 		{
-			p.Activated = false;
-			switch (p.Type)
+			continue;
+		}
+
+		p.Activated = false;
+		switch (p.Type)
+		{
+		case PowerUP::STICKY:
+			if (!isOtherPowerUPActive(mPowerUPs, p.Type))
 			{
-			case PowerUP::STICKY:
-				if (!isOtherPowerUPActive(this->PowerUPs, p.Type))
-				{
-					this->ball->Sticky = false;
-					this->player->Color = glm::vec3(1.0f);
-				}
-				break;
-			case PowerUP::PASSTHROUGH:
-				if (!isOtherPowerUPActive(this->PowerUPs, p.Type))
-				{
-					this->ball->PassThrough = false;
-					this->ball->Color = glm::vec3(1.0f);
-				}
-				break;
-			case PowerUP::CONFUSE:
-				if (!isOtherPowerUPActive(this->PowerUPs, p.Type))
-				{
-					this->effects->Confuse = false;
-				}
-				break;
-			case PowerUP::CHAOS:
-				if (!isOtherPowerUPActive(this->PowerUPs, p.Type)) {
-					this->effects->Chaos = false;
-				}
-				break;
-			default:
-				break;
+				mBall->Sticky = false;
+				mPlayer->Color = glm::vec3(1.0f);
 			}
+			break;
+		case PowerUP::PASSTHROUGH:
+			if (!isOtherPowerUPActive(mPowerUPs, p.Type))
+			{
+				mBall->PassThrough = false;
+				mBall->Color = glm::vec3(1.0f);
+			}
+			break;
+		case PowerUP::CONFUSE:
+			if (!isOtherPowerUPActive(mPowerUPs, p.Type))
+			{
+				mEffects->Confuse = false;
+			}
+			break;
+		case PowerUP::CHAOS:
+			if (!isOtherPowerUPActive(mPowerUPs, p.Type))
+			{
+				mEffects->Chaos = false;
+			}
+			break;
+		default:
+			break;
 		}
 	}
-	this->PowerUPs.erase(std::remove_if(
-		                     this->PowerUPs.begin(),
-		                     this->PowerUPs.end(),
-		                     [](const PowerUP &p)
-		                     {
-			                     return p.Destroyed && !p.Activated;
-		                     }),
-	                     this->PowerUPs.end());
+	mPowerUPs.erase(std::remove_if(mPowerUPs.begin(),
+	                               mPowerUPs.end(),
+	                               [](const auto &p)
+	                               {
+		                               return p.Destroyed && !p.Activated;
+	                               }),
+	                mPowerUPs.end());
 }
 
 void

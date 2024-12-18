@@ -19,19 +19,6 @@ class Postprocess;
 class Game
 {
 public:
-	enum class State
-	{
-		GAME_ACTIVE,
-		GAME_MENU,
-		GAME_WIN,
-	} State;
-
-	std::vector<GameLevel> Levels;
-	std::vector<PowerUP> PowerUPs;
-
-	GLuint Level;
-	GLuint Lives;
-
 	Game();
 	~Game();
 
@@ -42,25 +29,36 @@ public:
 	void update(float dt);
 	void render();
 
-	void ResetLevel();
-	void ResetPlayer();
-
-	void DoCollisions();
-
-	void ActivatePowerUP(PowerUP &p);
-	void SpawnPowerUPs(glm::vec2 pos);
-	void UpdatePowerUPs(float dt);
-
-private:
-	std::unique_ptr<Renderer> mRenderer;
-	std::unique_ptr<GameObject> player;
-	std::unique_ptr<BallObject> ball;
-	std::unique_ptr<ParticleGen> particles;
-	std::unique_ptr<Postprocess> effects;
-	float shakeTime;
-
 private:
 	void loadAssets();
+	void resetLevel();
+	void resetPlayer();
+
+	void doCollisions();
+
+	void activatePowerUP(PowerUP &p);
+	void spawnPowerUPs(glm::vec2 pos);
+	void updatePowerUPs(float dt);
+
+private:
+	enum class State
+	{
+		Active,
+		Menu,
+		Win,
+	} mState;
+
+	std::vector<GameLevel> mLevels;
+	std::vector<PowerUP> mPowerUPs;
+	std::unique_ptr<Renderer> mRenderer;
+	std::unique_ptr<GameObject> mPlayer;
+	std::unique_ptr<BallObject> mBall;
+	std::unique_ptr<ParticleGen> mBallParticles;
+	std::unique_ptr<Postprocess> mEffects;
+
+	float mShakeTime;
+	unsigned mCurrentLevel;
+	unsigned mLives;
 
 	GLFWwindow *mWindow;
 
