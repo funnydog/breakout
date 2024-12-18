@@ -635,37 +635,58 @@ static bool isOtherPowerUPActive(const std::vector<PowerUP> &powerups, enum Powe
 void
 Game::UpdatePowerUPs(float dt)
 {
-	for (PowerUP &p : this->PowerUPs) {
+	for (PowerUP &p : this->PowerUPs)
+	{
 		p.Position += p.Velocity * dt;
-		if (p.Activated) {
-			p.Duration -= dt;
-			if (p.Duration <= 0.0f) {
-				p.Activated = false;
-				if (p.Type == PowerUP::STICKY) {
-					if (!isOtherPowerUPActive(this->PowerUPs, p.Type)) {
-						this->ball->Sticky = false;
-						this->player->Color = glm::vec3(1.0f);
-					}
-				} else if (p.Type == PowerUP::PASSTHROUGH) {
-					if (!isOtherPowerUPActive(this->PowerUPs, p.Type)) {
-						this->ball->PassThrough = false;
-						this->ball->Color = glm::vec3(1.0f);
-					}
-				} else if (p.Type == PowerUP::CONFUSE) {
-					if (!isOtherPowerUPActive(this->PowerUPs, p.Type)) {
-						this->effects->Confuse = false;
-					}
-				} else if (p.Type == PowerUP::CHAOS) {
-					if (!isOtherPowerUPActive(this->PowerUPs, p.Type)) {
-						this->effects->Chaos = false;
-					}
+		if (!p.Activated)
+		{
+			continue;
+		}
+
+		p.Duration -= dt;
+		if (p.Duration <= 0.0f)
+		{
+			p.Activated = false;
+			switch (p.Type)
+			{
+			case PowerUP::STICKY:
+				if (!isOtherPowerUPActive(this->PowerUPs, p.Type))
+				{
+					this->ball->Sticky = false;
+					this->player->Color = glm::vec3(1.0f);
 				}
+				break;
+			case PowerUP::PASSTHROUGH:
+				if (!isOtherPowerUPActive(this->PowerUPs, p.Type))
+				{
+					this->ball->PassThrough = false;
+					this->ball->Color = glm::vec3(1.0f);
+				}
+				break;
+			case PowerUP::CONFUSE:
+				if (!isOtherPowerUPActive(this->PowerUPs, p.Type))
+				{
+					this->effects->Confuse = false;
+				}
+				break;
+			case PowerUP::CHAOS:
+				if (!isOtherPowerUPActive(this->PowerUPs, p.Type)) {
+					this->effects->Chaos = false;
+				}
+				break;
+			default:
+				break;
 			}
 		}
 	}
-	this->PowerUPs.erase(std::remove_if(this->PowerUPs.begin(), this->PowerUPs.end(),
-					    [](const PowerUP &p) { return p.Destroyed && !p.Activated; }
-				     ), this->PowerUPs.end());
+	this->PowerUPs.erase(std::remove_if(
+		                     this->PowerUPs.begin(),
+		                     this->PowerUPs.end(),
+		                     [](const PowerUP &p)
+		                     {
+			                     return p.Destroyed && !p.Activated;
+		                     }),
+	                     this->PowerUPs.end());
 }
 
 void
