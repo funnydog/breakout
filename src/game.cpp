@@ -173,66 +173,68 @@ Game::processInput()
 	Event event;
 	while (mEventQueue.pop(event))
 	{
-		switch (State)
-		{
-		case State::GAME_ACTIVE: {
-			if (const auto ep(std::get_if<KeyPressed>(&event)); ep)
-			{
-				switch (ep->key)
-				{
-				case GLFW_KEY_ESCAPE:
-					glfwSetWindowShouldClose(ep->window, GLFW_TRUE);
-					break;
-				default:
-					mKeys[ep->key] = GL_TRUE;
-					break;
-				}
-			}
-			else if (const auto ep(std::get_if<KeyReleased>(&event)); ep)
-			{
-				mKeys[ep->key] = GL_FALSE;
-			}
-			break;
-		}
-		case State::GAME_MENU: {
-			if (const auto ep(std::get_if<KeyPressed>(&event)); ep)
-			{
-				switch (ep->key)
-				{
-				case GLFW_KEY_ENTER:
-					State = State::GAME_ACTIVE;
-					break;
-				case GLFW_KEY_W:
-					Level = (Level + 1) % 4;
-					break;
-				case GLFW_KEY_S:
-					Level = (Level + 3) % 4;
-					break;
-				case GLFW_KEY_ESCAPE:
-					glfwSetWindowShouldClose(ep->window, GLFW_TRUE);
-					break;
-				}
-			}
-			break;
-		}
-		case State::GAME_WIN: {
-			if (const auto ep(std::get_if<KeyPressed>(&event)); ep)
-			{
-				switch (ep->key)
-				{
-				case GLFW_KEY_ENTER:
-					effects->Chaos = false;
-					State = State::GAME_MENU;
-					break;
+		handleEvent(event);
+	}
+}
 
-				case GLFW_KEY_ESCAPE:
-					glfwSetWindowShouldClose(ep->window, GLFW_TRUE);
-					break;
-				}
+void
+Game::handleEvent(const Event &event)
+{
+	switch (State)
+	{
+	case State::GAME_ACTIVE:
+		if (const auto ep(std::get_if<KeyPressed>(&event)); ep)
+		{
+			switch (ep->key)
+			{
+			case GLFW_KEY_ESCAPE:
+				glfwSetWindowShouldClose(ep->window, GLFW_TRUE);
+				break;
+			default:
+				mKeys[ep->key] = GL_TRUE;
+				break;
 			}
-			break;
 		}
+		else if (const auto ep(std::get_if<KeyReleased>(&event)); ep)
+		{
+			mKeys[ep->key] = GL_FALSE;
 		}
+		break;
+	case State::GAME_MENU:
+		if (const auto ep(std::get_if<KeyPressed>(&event)); ep)
+		{
+			switch (ep->key)
+			{
+			case GLFW_KEY_ENTER:
+				State = State::GAME_ACTIVE;
+				break;
+			case GLFW_KEY_W:
+				Level = (Level + 1) % 4;
+				break;
+			case GLFW_KEY_S:
+				Level = (Level + 3) % 4;
+				break;
+			case GLFW_KEY_ESCAPE:
+				glfwSetWindowShouldClose(ep->window, GLFW_TRUE);
+				break;
+			}
+		}
+		break;
+	case State::GAME_WIN:
+		if (const auto ep(std::get_if<KeyPressed>(&event)); ep)
+		{
+			switch (ep->key)
+			{
+			case GLFW_KEY_ENTER:
+				effects->Chaos = false;
+				State = State::GAME_MENU;
+				break;
+			case GLFW_KEY_ESCAPE:
+				glfwSetWindowShouldClose(ep->window, GLFW_TRUE);
+				break;
+			}
+		}
+		break;
 	}
 }
 

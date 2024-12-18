@@ -37,7 +37,9 @@ public:
 
 	void run();
 	void processInput();
-	void update(GLfloat dt);
+
+	void handleEvent(const Event &event);
+	void update(float dt);
 	void render();
 
 	void ResetLevel();
