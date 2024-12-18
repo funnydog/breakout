@@ -448,7 +448,8 @@ enum class Direction
 	Left,
 };
 
-static Direction getDirection(glm::vec2 target)
+static Direction
+getDirection(glm::vec2 target)
 {
 	static const glm::vec2 compass[] = {
 		glm::vec2(0.0f, 1.0f),  // UP
@@ -472,7 +473,8 @@ static Direction getDirection(glm::vec2 target)
 
 typedef std::tuple<bool, Direction, glm::vec2> Collision;
 
-static Collision checkCollision(const BallObject &a, glm::vec2 pos, glm::vec2 size)
+static Collision
+checkCollision(const BallObject &a, glm::vec2 pos, glm::vec2 size)
 {
 	glm::vec2 ball_center(a.Position + a.Radius);
 	glm::vec2 aabb_half_extents(size.x/2, size.y/2);
@@ -490,7 +492,8 @@ static Collision checkCollision(const BallObject &a, glm::vec2 pos, glm::vec2 si
 	return std::make_tuple(false, Direction::Up, difference);
 }
 
-static bool checkCollision(const GameObject &a, const GameObject &b)
+static bool
+checkCollision(const GameObject &a, const GameObject &b)
 {
 	bool cx =
 		a.Position.x + a.Size.x >= b.Position.x &&
