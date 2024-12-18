@@ -1,14 +1,5 @@
 #pragma once
 
-
-enum class LevelID
-{
-	One,
-	Two,
-	Three,
-	Four,
-};
-
 enum class FontID
 {
 	Title,
