@@ -144,6 +144,7 @@ Game::Game()
 
 Game::~Game()
 {
+	glfwDestroyWindow(mWindow);
 	glfwTerminate();
 }
 
