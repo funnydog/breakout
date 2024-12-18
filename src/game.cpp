@@ -14,7 +14,7 @@
 namespace
 {
 static constexpr glm::vec2 PLAYER_SIZE(100, 20);
-static constexpr float PLAYER_VELOCITY(500.0f);
+static constexpr glm::vec2 PLAYER_VELOCITY(500.f, 0.f);
 
 static constexpr glm::vec2 INITIAL_BALL_VELOCITY(100.0f, -350.0f);
 static constexpr float BALL_RADIUS = 12.5f;
@@ -268,32 +268,33 @@ Game::ResetPlayer()
 void
 Game::update(GLfloat dt)
 {
-	// update the paddle
 	if (State != State::GAME_ACTIVE)
 	{
 		return;
 	}
-	GLfloat vel = PLAYER_VELOCITY * dt;
+
+	// update the paddle
+	auto vel = PLAYER_VELOCITY * dt;
 	if (mKeys[GLFW_KEY_A])
 	{
-		if (player->Position.x >= 0)
+		if (player->Position.x >= 0.f)
 		{
-			player->Position.x -= vel;
+			player->Position -= vel;
 			if (ball->Stuck)
 			{
-				ball->Position.x -= vel;
+				ball->Position -= vel;
 			}
 		}
 	}
 
 	if (mKeys[GLFW_KEY_D])
 	{
-		if (player->Position.x <= ScreenWidth - this->player->Size.x)
+		if (player->Position.x+player->Size.x < ScreenWidth)
 		{
-			player->Position.x += vel;
+			player->Position += vel;
 			if (ball->Stuck)
 			{
-				ball->Position.x += vel;
+				ball->Position += vel;
 			}
 		}
 	}
@@ -312,22 +313,28 @@ Game::update(GLfloat dt)
 
 	this->UpdatePowerUPs(dt);
 
-	if (this->shakeTime > 0.0f) {
+	if (this->shakeTime > 0.0f)
+	{
 		this->shakeTime -= dt;
 		if (this->shakeTime <= 0.0f)
+		{
 			this->effects->Shake = false;
+		}
 	}
 
-	if (this->ball->Position.y >= ScreenHeight) {
+	if (this->ball->Position.y >= ScreenHeight)
+	{
 		--this->Lives;
-		if (this->Lives == 0) {
+		if (this->Lives == 0)
+		{
 			this->ResetLevel();
 			this->State = State::GAME_ACTIVE;
 		}
 		this->ResetPlayer();
 	}
 
-	if (this->State == State::GAME_ACTIVE && this->Levels[this->Level].isCompleted()) {
+	if (this->State == State::GAME_ACTIVE && this->Levels[this->Level].isCompleted())
+	{
 		this->ResetLevel();
 		this->ResetPlayer();
 		this->effects->Chaos = true;
