@@ -617,13 +617,11 @@ Game::SpawnPowerUPs(glm::vec2 pos)
 	}
 }
 
-static bool isOtherPowerUPActive(std::vector<PowerUP> &powerups, enum PowerUP::Type type)
+static bool isOtherPowerUPActive(const std::vector<PowerUP> &powerups, enum PowerUP::Type type)
 {
-	for (const PowerUP &p : powerups) {
-		if (p.Activated && p.Type == type)
-			return true;
-	}
-	return false;
+	return std::any_of(powerups.begin(), powerups.end(), [type](const auto &p) {
+		return p.Activated && p.Type == type;
+	});
 }
 
 void
