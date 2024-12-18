@@ -20,7 +20,7 @@ class ParticleGen
 public:
 	ParticleGen(Texture2D texture, unsigned amount);
 
-	void update(GLfloat dt, unsigned newParticles, glm::vec2 pos, glm::vec2 vel);
+	void update(float dt, unsigned newParticles, glm::vec2 pos, glm::vec2 vel);
 
 	const std::vector<Particle> &getParticles() const;
 	const Texture2D &getTexture() const;

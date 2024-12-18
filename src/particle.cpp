@@ -11,7 +11,7 @@ ParticleGen::ParticleGen(Texture2D texture, unsigned amount)
 }
 
 void
-ParticleGen::update(GLfloat dt, unsigned newParticles, glm::vec2 pos, glm::vec2 vel)
+ParticleGen::update(float dt, unsigned newParticles, glm::vec2 pos, glm::vec2 vel)
 {
 	// new particles
 	while (newParticles-->0)
