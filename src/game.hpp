@@ -8,12 +8,12 @@
 
 #include "eventqueue.hpp"
 #include "level.hpp"
-#include "particle.hpp"
 #include "powerup.hpp"
 #include "resources.hpp"
 #include "resourceholder.hpp"
 
 class BallObject;
+class ParticleGen;
 class Postprocess;
 
 class Game
@@ -53,7 +53,7 @@ private:
 	std::unique_ptr<Renderer> mRenderer;
 	std::unique_ptr<GameObject> player;
 	std::unique_ptr<BallObject> ball;
-	ParticleGen mBallParticles;
+	std::unique_ptr<ParticleGen> particles;
 	std::unique_ptr<Postprocess> effects;
 	float shakeTime;
 
