@@ -398,8 +398,6 @@ enum Direction
 	LEFT,
 };
 
-typedef std::tuple<bool, Direction, glm::vec2> Collision;
-
 static Direction VectorDirection(glm::vec2 target)
 {
 	static const glm::vec2 compass[] = {
@@ -411,15 +409,19 @@ static Direction VectorDirection(glm::vec2 target)
 	float max = 0.0f;
 	int best_match = 0;
 //	glm::vec2 normal = glm::normalize(target);
-	for (int i = 0; i < 4; i++) {
+	for (int i = 0; i < 4; i++)
+	{
 		float dot = glm::dot(target, compass[i]);
-		if (dot > max) {
+		if (dot > max)
+		{
 			max = dot;
 			best_match = i;
 		}
 	}
-	return (Direction)best_match;
+	return static_cast<Direction>(best_match);
 }
+
+typedef std::tuple<bool, Direction, glm::vec2> Collision;
 
 static Collision CheckCollision(const BallObject &a, glm::vec2 pos, glm::vec2 size)
 {
