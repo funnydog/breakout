@@ -454,22 +454,34 @@ static bool CheckCollision(GameObject &a, GameObject &b)
 void
 Game::ActivatePowerUP(PowerUP &p)
 {
-	if (p.Type == PowerUP::SPEED) {
+	switch (p.Type)
+	{
+	case PowerUP::SPEED:
 		this->ball->Velocity *= 1.2;
-	} else if (p.Type == PowerUP::STICKY) {
+		break;
+	case PowerUP::STICKY:
 		this->ball->Sticky = true;
 		this->player->Color = glm::vec3(1.0f, 0.5f, 1.0f);
-	} else if (p.Type == PowerUP::PASSTHROUGH) {
+		break;
+	case PowerUP::PASSTHROUGH:
 		this->ball->PassThrough = true;
 		this->ball->Color = glm::vec3(1.0f, 0.5f, 0.5f);
-	} else if (p.Type == PowerUP::PAD_INCREASE) {
+		break;
+	case PowerUP::PAD_INCREASE:
 		this->player->Size.x += 50;
-	} else if (p.Type == PowerUP::CONFUSE) {
+		break;
+	case PowerUP::CONFUSE:
 		if (!this->effects->Chaos)
+		{
 			this->effects->Confuse = true;
-	} else if (p.Type == PowerUP::CHAOS) {
+		}
+		break;
+	case PowerUP::CHAOS:
 		if (!this->effects->Confuse)
+		{
 			this->effects->Chaos = true;
+		}
+		break;
 	}
 }
 
