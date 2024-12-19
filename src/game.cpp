@@ -398,9 +398,6 @@ Game::resetPlayer()
 			PlayerSize.x / 2 - BallRadius,
 			-BallRadius * 2),
 		InitialBallVelocity);
-	mBall->PassThrough = false;
-	mBall->Sticky = false;
-	mBall->Color = glm::vec3(1.0f);
 
 	mEffects->Chaos = false;
 	mEffects->Confuse = false;

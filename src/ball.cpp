@@ -9,33 +9,40 @@ BallObject::BallObject(glm::vec2 pos, float radius, glm::vec2 vel, Texture2D spr
 glm::vec2
 BallObject::Move(float dt, GLuint window_width)
 {
-	if (this->Stuck)
-		return this->Position;
-
-	this->Position += this->Velocity * dt;
-
-	if (this->Position.x <= 0.0f) {
-		this->Velocity.x = -this->Velocity.x;
-		this->Position.x = 0.0f;
-	} else if (this->Position.x + this->Size.x >= window_width) {
-		this->Velocity.x = -this->Velocity.x;
-		this->Position.x = window_width - this->Size.x;
+	if (Stuck)
+	{
+		return Position;
 	}
 
-	if (this->Position.y <= 0.0f) {
-		this->Velocity.y = -this->Velocity.y;
-		this->Position.y = 0.0f;
+	Position += Velocity * dt;
+
+	if (Position.x <= 0.0f)
+	{
+		Velocity.x = -Velocity.x;
+		Position.x = 0.0f;
+	}
+	else if (Position.x + Size.x >= window_width)
+	{
+		Velocity.x = -Velocity.x;
+		Position.x = window_width - Size.x;
 	}
 
-	return this->Position;
+	if (Position.y <= 0.0f)
+	{
+		Velocity.y = -Velocity.y;
+		Position.y = 0.0f;
+	}
+
+	return Position;
 }
 
 void
 BallObject::Reset(glm::vec2 pos, glm::vec2 vel)
 {
-	this->Position = pos;
-	this->Velocity = vel;
-	this->Stuck = true;
-	this->Sticky = false;
-	this->PassThrough = false;
+	Position = pos;
+	Velocity = vel;
+	Color = glm::vec3(1.0f);
+	Stuck = true;
+	Sticky = false;
+	PassThrough = false;
 }
