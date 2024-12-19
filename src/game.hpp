@@ -16,6 +16,18 @@ class BallObject;
 class ParticleGen;
 class Postprocess;
 
+class Effect
+{
+public:
+	void enableFor(float duration);
+	void disable();
+	bool update(float dt);
+	bool isEnabled() const;
+
+private:
+	float timeLeft = 0.f;
+};
+
 class Game
 {
 public:
@@ -36,7 +48,7 @@ private:
 
 	void doCollisions();
 
-	void activatePowerUP(PowerUP &p);
+	void activatePowerUP(enum PowerUP::Type type);
 	void spawnPowerUPs(glm::vec2 pos);
 	void updatePowerUPs(float dt);
 
@@ -56,7 +68,12 @@ private:
 	std::unique_ptr<ParticleGen> mBallParticles;
 	std::unique_ptr<Postprocess> mEffects;
 
-	float mShakeTime;
+	Effect mShakeEffect;
+	Effect mStickyEffect;
+	Effect mPassThroughEffect;
+	Effect mConfuseEffect;
+	Effect mChaosEffect;
+
 	unsigned mCurrentLevel;
 	unsigned mLives;
 

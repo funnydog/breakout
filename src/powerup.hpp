@@ -20,13 +20,9 @@ public:
 		CONFUSE,
 		CHAOS,
 	} Type;
-	float Duration;
-	bool Activated;
 
-	PowerUP(enum Type type, glm::vec3 color, float duration, glm::vec2 pos, Texture2D tex) :
+	PowerUP(enum Type type, glm::vec3 color, glm::vec2 pos, Texture2D tex) :
 		GameObject(pos, POWERUP_SIZE, tex, color, POWERUP_VELOCITY),
-		Type(type),
-		Duration(duration),
-		Activated(false)
+		Type(type)
 	{}
 };

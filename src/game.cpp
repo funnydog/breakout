@@ -17,7 +17,6 @@ static constexpr glm::vec2 PlayerSize(100, 20);
 static constexpr glm::vec2 PlayerVelocity(500.f, 0.f);
 static constexpr glm::vec2 InitialBallVelocity(100.0f, -350.0f);
 static constexpr float BallRadius = 12.5f;
-
 static constexpr unsigned InitialLives = 3;
 
 static const char *levels[] = {
@@ -31,9 +30,41 @@ const unsigned ScreenWidth = 800;
 const unsigned ScreenHeight = 600;
 }
 
+void
+Effect::enableFor(float duration)
+{
+	timeLeft += duration;
+}
+
+void
+Effect::disable()
+{
+	timeLeft = 0.f;
+}
+
+bool
+Effect::update(float dt)
+{
+	if (timeLeft > 0.f)
+	{
+		timeLeft -= dt;
+		if (timeLeft <= 0.f)
+		{
+			timeLeft = 0.f;
+			return false;
+		}
+	}
+	return true;
+}
+
+bool
+Effect::isEnabled() const
+{
+	return timeLeft > 0.f;
+}
+
 Game::Game()
 	: mState(State::Menu)
-	, mShakeTime(0.0f)
 	, mCurrentLevel(0)
 	, mLives(InitialLives)
 	, mWindow(nullptr)
@@ -292,15 +323,37 @@ Game::update(GLfloat dt)
 	                   mBall->Position + glm::vec2(BallRadius/2.f),
 	                   mBall->Velocity);
 
-	updatePowerUPs(dt);
-
-	if (mShakeTime > 0.f)
+	// remove and update the powerups
+	std::erase_if(mPowerUPs, [](const auto &p) {
+		return p.Destroyed;
+	});
+	for (auto &pow : mPowerUPs)
 	{
-		mShakeTime -= dt;
-		if (mShakeTime <= 0.0f)
-		{
-			mEffects->Shake = false;
-		}
+		pow.Position += pow.Velocity * dt;
+	}
+
+	// update the effects
+	if (!mShakeEffect.update(dt))
+	{
+		mEffects->Shake = false;
+	}
+	if (!mStickyEffect.update(dt))
+	{
+		mBall->Sticky = false;
+		mPlayer->Color = glm::vec3(1.f);
+	}
+	if (!mPassThroughEffect.update(dt))
+	{
+		mBall->PassThrough = false;
+		mBall->Color = glm::vec3(1.f);
+	}
+	if (!mConfuseEffect.update(dt))
+	{
+		mEffects->Confuse = false;
+	}
+	if (!mChaosEffect.update(dt))
+	{
+		mEffects->Chaos = false;
 	}
 
 	if (mBall->Position.y >= ScreenHeight)
@@ -340,10 +393,7 @@ void Game::render()
 
 		for (PowerUP &p : mPowerUPs)
 		{
-			if (!p.Destroyed)
-			{
-				mRenderer->draw(p.Sprite, p.Position, p.Size, p.Color);
-			}
+			mRenderer->draw(p.Sprite, p.Position, p.Size, p.Color);
 		}
 
 		mRenderer->draw(*mBallParticles);
@@ -381,7 +431,6 @@ void
 Game::resetLevel()
 {
 	mLevels[mCurrentLevel].reset();
-	mPowerUPs.clear();
 	mLives = InitialLives;
 }
 
@@ -400,14 +449,23 @@ Game::resetPlayer()
 			-BallRadius * 2),
 		InitialBallVelocity);
 
+	// remove the powerups
+	mPowerUPs.clear();
+
+	// disable the effects
+	mShakeEffect.disable();
+	mStickyEffect.disable();
+	mPassThroughEffect.disable();
+	mChaosEffect.disable();
+	mConfuseEffect.disable();
 	mEffects->Chaos = false;
 	mEffects->Confuse = false;
 }
 
 void
-Game::activatePowerUP(PowerUP &p)
+Game::activatePowerUP(enum PowerUP::Type type)
 {
-	switch (p.Type)
+	switch (type)
 	{
 	case PowerUP::SPEED:
 		mBall->Velocity *= 1.2;
@@ -415,23 +473,27 @@ Game::activatePowerUP(PowerUP &p)
 	case PowerUP::STICKY:
 		mBall->Sticky = true;
 		mPlayer->Color = glm::vec3(1.0f, 0.5f, 1.0f);
+		mStickyEffect.enableFor(20.f);
 		break;
 	case PowerUP::PASSTHROUGH:
 		mBall->PassThrough = true;
 		mBall->Color = glm::vec3(1.0f, 0.5f, 0.5f);
+		mPassThroughEffect.enableFor(10.f);
 		break;
 	case PowerUP::PAD_INCREASE:
 		mPlayer->Size.x += 50;
 		break;
 	case PowerUP::CONFUSE:
-		if (!mEffects->Chaos)
+		if (!mChaosEffect.isEnabled())
 		{
+			mConfuseEffect.enableFor(15.f);
 			mEffects->Confuse = true;
 		}
 		break;
 	case PowerUP::CHAOS:
-		if (!mEffects->Confuse)
+		if (!mConfuseEffect.isEnabled())
 		{
+			mChaosEffect.enableFor(15.f);
 			mEffects->Chaos = true;
 		}
 		break;
@@ -528,7 +590,7 @@ Game::doCollisions()
 		}
 		else
 		{
-			mShakeTime = 0.05f;
+			mShakeEffect.enableFor(0.05f);
 			mEffects->Shake = true;
 		}
 
@@ -597,9 +659,8 @@ Game::doCollisions()
 		}
 		else if (checkCollision(*mPlayer, p))
 		{
-			activatePowerUP(p);
+			activatePowerUP(p.Type);
 			p.Destroyed = true;
-			p.Activated = true;
 		}
 	}
 }
@@ -616,106 +677,39 @@ Game::spawnPowerUPs(glm::vec2 pos)
 	if (shouldSpawn(75))
 	{
 		mPowerUPs.emplace_back(
-			PowerUP::SPEED, glm::vec3(0.5f, 0.5f, 1.0f), 0.0f, pos,
+			PowerUP::SPEED, glm::vec3(0.5f, 0.5f, 1.0f), pos,
 			mTextures.get(TextureID::PowerupSpeed));
 	}
 	else if (shouldSpawn(75))
 	{
 		mPowerUPs.emplace_back(
-			PowerUP::STICKY, glm::vec3(1.0f, 0.5f, 1.0f), 20.0f, pos,
+			PowerUP::STICKY, glm::vec3(1.0f, 0.5f, 1.0f), pos,
 			mTextures.get(TextureID::PowerupSticky));
 	}
 	else if (shouldSpawn(75))
 	{
 		mPowerUPs.emplace_back(
-			PowerUP::PASSTHROUGH, glm::vec3(0.5f, 1.0f, 0.5f), 10.0f, pos,
+			PowerUP::PASSTHROUGH, glm::vec3(0.5f, 1.0f, 0.5f), pos,
 			mTextures.get(TextureID::PowerupPassthrough));
 	}
 	else if (shouldSpawn(75))
 	{
 		mPowerUPs.emplace_back(
-			PowerUP::PAD_INCREASE, glm::vec3(1.0f, 0.6f, 0.4f), 0.0f, pos,
+			PowerUP::PAD_INCREASE, glm::vec3(1.0f, 0.6f, 0.4f), pos,
 			mTextures.get(TextureID::PowerupIncrease));
 	}
 	else if (shouldSpawn(15))
 	{
 		mPowerUPs.emplace_back(
-			PowerUP::CONFUSE, glm::vec3(1.0f, 0.3f, 0.3f), 15.0f, pos,
+			PowerUP::CONFUSE, glm::vec3(1.0f, 0.3f, 0.3f), pos,
 			mTextures.get(TextureID::PowerupConfuse));
 	}
 	else if (shouldSpawn(15))
 	{
 		mPowerUPs.emplace_back(
-			PowerUP::CHAOS, glm::vec3(0.9f, 0.25f, 0.25f), 15.0f, pos,
+			PowerUP::CHAOS, glm::vec3(0.9f, 0.25f, 0.25f), pos,
 			mTextures.get(TextureID::PowerupChaos));
 	}
-}
-
-static bool
-isOtherPowerUPActive(const std::vector<PowerUP> &powerups, enum PowerUP::Type type)
-{
-	return std::any_of(powerups.begin(), powerups.end(), [type](const auto &p) {
-		return p.Activated && p.Type == type;
-	});
-}
-
-void
-Game::updatePowerUPs(float dt)
-{
-	for (PowerUP &p : mPowerUPs)
-	{
-		p.Position += p.Velocity * dt;
-		if (!p.Activated)
-		{
-			continue;
-		}
-
-		p.Duration -= dt;
-		if (p.Duration > 0.0f)
-		{
-			continue;
-		}
-
-		p.Activated = false;
-		switch (p.Type)
-		{
-		case PowerUP::STICKY:
-			if (!isOtherPowerUPActive(mPowerUPs, p.Type))
-			{
-				mBall->Sticky = false;
-				mPlayer->Color = glm::vec3(1.0f);
-			}
-			break;
-		case PowerUP::PASSTHROUGH:
-			if (!isOtherPowerUPActive(mPowerUPs, p.Type))
-			{
-				mBall->PassThrough = false;
-				mBall->Color = glm::vec3(1.0f);
-			}
-			break;
-		case PowerUP::CONFUSE:
-			if (!isOtherPowerUPActive(mPowerUPs, p.Type))
-			{
-				mEffects->Confuse = false;
-			}
-			break;
-		case PowerUP::CHAOS:
-			if (!isOtherPowerUPActive(mPowerUPs, p.Type))
-			{
-				mEffects->Chaos = false;
-			}
-			break;
-		default:
-			break;
-		}
-	}
-	mPowerUPs.erase(std::remove_if(mPowerUPs.begin(),
-	                               mPowerUPs.end(),
-	                               [](const auto &p)
-	                               {
-		                               return p.Destroyed && !p.Activated;
-	                               }),
-	                mPowerUPs.end());
 }
 
 void
