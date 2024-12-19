@@ -10,8 +10,6 @@ class BallObject : public GameObject
 {
 public:
 	bool Stuck;
-	bool Sticky;
-	bool PassThrough;
 
 	BallObject(glm::vec2 pos, float radius, glm::vec2 vel, Texture2D sprite);
 

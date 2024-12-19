@@ -339,12 +339,10 @@ Game::update(GLfloat dt)
 	}
 	if (!mStickyEffect.update(dt))
 	{
-		mBall->Sticky = false;
 		mPlayer->Color = glm::vec3(1.f);
 	}
 	if (!mPassThroughEffect.update(dt))
 	{
-		mBall->PassThrough = false;
 		mBall->Color = glm::vec3(1.f);
 	}
 	if (!mConfuseEffect.update(dt))
@@ -471,12 +469,10 @@ Game::activatePowerUP(enum PowerUP::Type type)
 		mBall->Velocity *= 1.2;
 		break;
 	case PowerUP::STICKY:
-		mBall->Sticky = true;
 		mPlayer->Color = glm::vec3(1.0f, 0.5f, 1.0f);
 		mStickyEffect.enableFor(20.f);
 		break;
 	case PowerUP::PASSTHROUGH:
-		mBall->PassThrough = true;
 		mBall->Color = glm::vec3(1.0f, 0.5f, 0.5f);
 		mPassThroughEffect.enableFor(10.f);
 		break;
@@ -594,7 +590,7 @@ Game::doCollisions()
 			mEffects->Shake = true;
 		}
 
-		if (mBall->PassThrough && !obj.solid)
+		if (mPassThroughEffect.isEnabled() && !obj.solid)
 		{
 			// nothing
 		}
@@ -642,7 +638,7 @@ Game::doCollisions()
 			mBall->Velocity.x = InitialBallVelocity.x * percentage * strength;
 			mBall->Velocity.y = -1.0f * std::abs(mBall->Velocity.y);
 			mBall->Velocity = glm::normalize(mBall->Velocity) * glm::length(oldVelocity);
-			mBall->Stuck = mBall->Sticky;
+			mBall->Stuck = mStickyEffect.isEnabled();
 		}
 	}
 
