@@ -5,7 +5,6 @@ GameObject::GameObject(glm::vec2 pos, glm::vec2 size, Texture2D sprite, glm::vec
 	, Size(size)
 	, Velocity(vel)
 	, Color(color)
-	, IsSolid(false)
 	, Destroyed(false)
 	, Sprite(sprite)
 {

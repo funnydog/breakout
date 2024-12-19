@@ -5,14 +5,12 @@
 
 #include "texture.hpp"
 
-class GameObject
+struct GameObject
 {
-public:
 	glm::vec2 Position;
 	glm::vec2 Size;
 	glm::vec2 Velocity;
 	glm::vec3 Color;
-	bool IsSolid;
 	bool Destroyed;
 
 	Texture2D Sprite;
