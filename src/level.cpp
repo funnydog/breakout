@@ -53,13 +53,12 @@ GameLevel::load(const char *path, const Texture2D &texture, unsigned levelWidth,
 
 			switch (tileData[y][x])
 			{
-			case 0: b.dead = true; break; // no brick
-			case 1: b.solid = true; break;
-			case 2: break;
-			case 3: break;
-			case 4: break;
+			case 1: b.solid = true;
+			case 2:
+			case 3:
+			case 4:
 			case 5: break;
-			default: continue; // unknown brick
+			default: continue; // empty brick
 			}
 			b.type = tileData[y][x];
 			mBricks.push_back(b);
@@ -81,10 +80,7 @@ GameLevel::reset()
 {
 	for (auto &b : mBricks)
 	{
-		if (b.type != 0.f)
-		{
-			b.dead = false;
-		}
+		b.dead = false;
 	}
 }
 
