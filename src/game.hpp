@@ -6,6 +6,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "effect.hpp"
 #include "eventqueue.hpp"
 #include "level.hpp"
 #include "powerup.hpp"
@@ -15,18 +16,6 @@
 class BallObject;
 class ParticleGen;
 class Postprocess;
-
-class Effect
-{
-public:
-	void enableFor(float duration);
-	void disable();
-	bool update(float dt);
-	bool isEnabled() const;
-
-private:
-	float timeLeft = 0.f;
-};
 
 class Game
 {
