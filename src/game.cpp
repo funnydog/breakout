@@ -289,7 +289,7 @@ Game::update(GLfloat dt)
 	doCollisions();
 
 	mBallParticles->update(dt, 2,
-	                   mBall->Position + glm::vec2(mBall->Radius/2.f),
+	                   mBall->Position + glm::vec2(BallRadius/2.f),
 	                   mBall->Velocity);
 
 	updatePowerUPs(dt);
@@ -476,7 +476,7 @@ typedef std::tuple<bool, Direction, glm::vec2> Collision;
 static Collision
 checkCollision(const BallObject &a, glm::vec2 pos, glm::vec2 size)
 {
-	glm::vec2 ball_center(a.Position + a.Radius);
+	glm::vec2 ball_center(a.Position + BallRadius);
 	glm::vec2 aabb_half_extents(size.x/2, size.y/2);
 	glm::vec2 aabb_center(pos + aabb_half_extents);
 
@@ -485,7 +485,7 @@ checkCollision(const BallObject &a, glm::vec2 pos, glm::vec2 size)
 
 	glm::vec2 closest = aabb_center + clamped;
 	difference = closest - ball_center;
-	if (glm::dot(difference, difference) < a.Radius * a.Radius)
+	if (glm::dot(difference, difference) < BallRadius * BallRadius)
 	{
 		return std::make_tuple(true, getDirection(difference), difference);
 	}
@@ -541,7 +541,7 @@ Game::doCollisions()
 		else if (dir == Direction::Left || dir == Direction::Right)
 		{
 			mBall->Velocity.x = -mBall->Velocity.x;
-			float penetration = mBall->Radius - std::abs(vec.x);
+			float penetration = BallRadius - std::abs(vec.x);
 			if (dir == Direction::Left)
 			{
 				mBall->Position.x += penetration;
@@ -554,7 +554,7 @@ Game::doCollisions()
 		else
 		{
 			mBall->Velocity.y = -mBall->Velocity.y;
-			float penetration = mBall->Radius - std::abs(vec.y);
+			float penetration = BallRadius - std::abs(vec.y);
 			if (dir == Direction::Down)
 			{
 				mBall->Position.y += penetration;
@@ -573,7 +573,7 @@ Game::doCollisions()
 		if (std::get<0>(c))
 		{
 			float center = mPlayer->Position.x + mPlayer->Size.x / 2;
-			float distance = mBall->Position.x + mBall->Radius - center;
+			float distance = mBall->Position.x + BallRadius - center;
 			float percentage = distance / (mPlayer->Size.x / 2);
 
 			float strength = 2.0f;

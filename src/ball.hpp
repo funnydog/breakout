@@ -9,7 +9,6 @@
 class BallObject : public GameObject
 {
 public:
-	float Radius;
 	bool Stuck;
 	bool Sticky;
 	bool PassThrough;
