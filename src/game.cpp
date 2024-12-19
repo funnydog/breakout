@@ -381,6 +381,7 @@ void
 Game::resetLevel()
 {
 	mLevels[mCurrentLevel].reset();
+	mPowerUPs.clear();
 	mLives = InitialLives;
 }
 
