@@ -612,11 +612,7 @@ Game::doCollisions()
 	// powerup player collision
 	for (PowerUP &p : mPowerUPs)
 	{
-		if (p.Destroyed)
-		{
-			// nothing
-		}
-		else if (p.Position.y >= ScreenHeight)
+		if (p.Position.y >= ScreenHeight)
 		{
 			p.Destroyed = true;
 		}
