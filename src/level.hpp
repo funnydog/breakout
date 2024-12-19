@@ -20,7 +20,6 @@ class GameLevel
 {
 public:
 	bool load(const char *path, const Texture2D &texture, unsigned width, unsigned height);
-	void draw(Renderer &renderer);
 
 	bool isCompleted() const;
 	void reset();
