@@ -763,7 +763,7 @@ void
 Game::loadAssets()
 {
         // textures
-	static const std::pair<TextureID, std::filesystem::path> textures[] = {
+	static constexpr std::pair<TextureID, std::string_view> textures[] = {
 		{ TextureID::Face, "assets/textures/awesomeface.png" },
 		{ TextureID::Background, "assets/textures/background.jpg" },
 		{ TextureID::Blocks, "assets/textures/blocks.png" },
@@ -776,30 +776,32 @@ Game::loadAssets()
 		{ TextureID::PowerupChaos, "assets/textures/powerup_chaos.png" },
 		{ TextureID::PowerupPassthrough, "assets/textures/powerup_passthrough.png" },
 	};
-
-	for (auto &[id, path] : textures)
+	for (auto [id, path] : textures)
 	{
 		mTextures.load(id, path);
 	}
 
 	// shaders
-	mShaders.load(ShaderID::Sprite,
-	              "assets/shaders/sprite.vs",
-	              "assets/shaders/sprite.fs");
-	mShaders.load(ShaderID::Text,
-	              "assets/shaders/text.vs",
-	              "assets/shaders/text.fs");
-	mShaders.load(ShaderID::Particle,
-	              "assets/shaders/particle.vs",
-	              "assets/shaders/particle.fs");
-	mShaders.load(ShaderID::Postprocess,
-	              "assets/shaders/postprocess.vs",
-	              "assets/shaders/postprocess.fs");
-	mShaders.load(ShaderID::Blocks,
-	              "assets/shaders/blocks.vs",
-	              "assets/shaders/blocks.fs");
+	static constexpr std::tuple<ShaderID, std::string_view, std::string_view> shaders[] = {
+		{ ShaderID::Sprite, "assets/shaders/sprite.vs", "assets/shaders/sprite.fs" },
+		{ ShaderID::Text, "assets/shaders/text.vs", "assets/shaders/text.fs" },
+		{ ShaderID::Particle, "assets/shaders/particle.vs", "assets/shaders/particle.fs" },
+		{ ShaderID::Postprocess, "assets/shaders/postprocess.vs", "assets/shaders/postprocess.fs" },
+		{ ShaderID::Blocks, "assets/shaders/blocks.vs", "assets/shaders/blocks.fs" },
+	};
+	for (auto [id, vs, fs] : shaders)
+	{
+		mShaders.load(id, vs, fs);
+	}
 
 	// fonts
-	mFonts.load(FontID::Title, "assets/fonts/ocraext.ttf", 24);
-	mFonts.load(FontID::Subtitle, "assets/fonts/ocraext.ttf", 18);
+	static constexpr std::tuple<FontID, std::string_view, unsigned> fonts[] = {
+		{ FontID::Title, "assets/fonts/ocraext.ttf", 24 },
+		{ FontID::Subtitle, "assets/fonts/ocraext.ttf", 18 },
+	};
+	for (auto [id, path, size] : fonts)
+	{
+		mFonts.load(id, path, size);
+	}
+
 }
