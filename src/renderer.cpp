@@ -46,6 +46,13 @@ Renderer::~Renderer()
 }
 
 void
+Renderer::clear(glm::vec4 color) const
+{
+	glCheck(glClearColor(color.r, color.g, color.b, 1.0f));
+	glCheck(glClear(GL_COLOR_BUFFER_BIT));
+}
+
+void
 Renderer::draw(const std::string &text, glm::vec2 pos, Font &font, glm::vec3 color)
 {
 	if (text.empty())

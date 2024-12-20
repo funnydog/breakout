@@ -23,6 +23,7 @@ public:
 	              const Shader &spriteShader);
 	~Renderer();
 
+	void clear(glm::vec4 color) const;
 	void draw(const std::string &text, glm::vec2 pos,
 	          Font &font, glm::vec3 color = glm::vec3(1.0f));
 

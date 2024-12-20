@@ -357,6 +357,8 @@ Game::update(GLfloat dt)
 
 void Game::render()
 {
+	mRenderer->clear(glm::vec4(0.f, 0.f, .2f, 1.f));
+
 	auto &font = mFonts.get(FontID::Title);
 	if (mState == State::Active || mState == State::Menu)
 	{
