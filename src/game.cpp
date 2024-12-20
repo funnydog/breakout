@@ -282,7 +282,28 @@ Game::update(GLfloat dt)
 	}
 
 	// update the ball
-	mBall->Move(dt, ScreenWidth);
+	if (!mBall->Stuck)
+	{
+		mBall->Position += mBall->Velocity * dt;
+		if (mBall->Position.x <= 0.f)
+		{
+			mBall->Position.x = 0.f;
+			mBall->Velocity.x = -mBall->Velocity.x;
+		}
+		else if (mBall->Position.x + mBall->Size.x >= ScreenWidth)
+		{
+			mBall->Position.x = ScreenWidth - mBall->Size.x;
+			mBall->Velocity.x = -mBall->Velocity.x;
+		}
+
+		if (mBall->Position.y <= 0.f)
+		{
+			mBall->Position.y = 0.f;
+			mBall->Velocity.y = -mBall->Velocity.y;
+		}
+	}
+
+	// compute the collisions
 	doCollisions();
 
 	mBallParticles->update(dt, 2,

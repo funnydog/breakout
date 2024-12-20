@@ -5,33 +5,3 @@ BallObject::BallObject(glm::vec2 pos, float radius, glm::vec2 vel, Texture2D spr
 	Stuck(true)
 {
 }
-
-glm::vec2
-BallObject::Move(float dt, GLuint window_width)
-{
-	if (Stuck)
-	{
-		return Position;
-	}
-
-	Position += Velocity * dt;
-
-	if (Position.x <= 0.0f)
-	{
-		Velocity.x = -Velocity.x;
-		Position.x = 0.0f;
-	}
-	else if (Position.x + Size.x >= window_width)
-	{
-		Velocity.x = -Velocity.x;
-		Position.x = window_width - Size.x;
-	}
-
-	if (Position.y <= 0.0f)
-	{
-		Velocity.y = -Velocity.y;
-		Position.y = 0.0f;
-	}
-
-	return Position;
-}
