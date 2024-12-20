@@ -76,23 +76,20 @@ Game::Game()
 		static_cast<GLfloat>(ScreenHeight), 0.0f,
 		-1.0f, 1.0f);
 
-	// configure the sprite shader
+	// configure the shaders
 	auto spriteShader = mShaders.get(ShaderID::Sprite);
 	spriteShader.use();
 	spriteShader.getUniform("projection").setMatrix4(proj);
 
-	// configure the text shader
 	auto textShader = mShaders.get(ShaderID::Text);
 	textShader.use();
 	textShader.getUniform("projection").setMatrix4(proj);
 
-	// configure the particle shader
 	auto particleShader = mShaders.get(ShaderID::Particle);
 	particleShader.use();
 	particleShader.getUniform("sprite").setInteger(0);
 	particleShader.getUniform("projection").setMatrix4(proj);
 
-	// configure the level shader
 	auto levelShader = mShaders.get(ShaderID::Blocks);
 	levelShader.use();
 	levelShader.getUniform("image").setInteger(0);
@@ -111,6 +108,12 @@ Game::Game()
 		ScreenWidth,
 		ScreenHeight);
 
+	// ball particles
+	mBallParticles = std::make_unique<ParticleGen>(
+		mTextures.get(TextureID::Particle),
+		500);
+
+	// setup the world data
 	// levels
 	auto &blocksTex = mTextures.get(TextureID::Blocks);
 	for (const char *path : levels)
@@ -141,11 +144,6 @@ Game::Game()
 	mBall = std::make_unique<BallObject>(
 		ballPos, BallRadius, InitialBallVelocity,
 		mTextures.get(TextureID::Face));
-
-	// ball particles
-	mBallParticles = std::make_unique<ParticleGen>(
-		mTextures.get(TextureID::Particle),
-		500);
 }
 
 Game::~Game()
@@ -157,6 +155,7 @@ Game::~Game()
 void
 Game::run()
 {
+	// variable-time game loop
 	auto currentTime = glfwGetTime();
 	while (!glfwWindowShouldClose(mWindow))
 	{

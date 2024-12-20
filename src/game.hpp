@@ -49,25 +49,28 @@ private:
 		Win,
 	} mState;
 
+	// world data
 	std::vector<GameLevel> mLevels;
 	std::vector<PowerUP> mPowerUPs;
-	std::unique_ptr<Renderer> mRenderer;
 	std::unique_ptr<GameObject> mPlayer;
 	std::unique_ptr<BallObject> mBall;
-	std::unique_ptr<ParticleGen> mBallParticles;
-	std::unique_ptr<Postprocess> mEffects;
+	unsigned mCurrentLevel;
+	unsigned mLives;
 
+	// time limited effects
 	Effect mShakeEffect;
 	Effect mStickyEffect;
 	Effect mPassThroughEffect;
 	Effect mConfuseEffect;
 	Effect mChaosEffect;
 
-	unsigned mCurrentLevel;
-	unsigned mLives;
-
+	// graphics rendering data
 	GLFWwindow *mWindow;
+	std::unique_ptr<Renderer> mRenderer;
+	std::unique_ptr<ParticleGen> mBallParticles;
+	std::unique_ptr<Postprocess> mEffects;
 
+	// support data
 	EventQueue mEventQueue;
 	TextureHolder mTextures;
 	ShaderHolder mShaders;
