@@ -17,6 +17,8 @@ static constexpr glm::vec2 PlayerSize(100, 20);
 static constexpr glm::vec2 PlayerVelocity(500.f, 0.f);
 static constexpr glm::vec2 InitialBallVelocity(100.0f, -350.0f);
 static constexpr float BallRadius = 12.5f;
+static constexpr glm::vec2 PowerUPSize(60, 20);
+static constexpr glm::vec2 PowerUPVelocity(0.0f, 150.0f);
 static constexpr unsigned InitialLives = 3;
 
 static const char *levels[] = {
@@ -127,23 +129,11 @@ Game::Game()
 		mLevels.push_back(level);
 	}
 
-	// player
-	glm::vec2 playerPos = glm::vec2(
-		ScreenWidth / 2 - PlayerSize.x / 2,
-		ScreenHeight - PlayerSize.y);
-
-	mPlayer = std::make_unique<GameObject>(
-		playerPos, PlayerSize,
-		mTextures.get(TextureID::Paddle));
-
-	// ball
-	glm::vec2 ballPos = playerPos + glm::vec2(
-		PlayerSize.x / 2 - BallRadius,
-		-BallRadius * 2);
-
-	mBall = std::make_unique<BallObject>(
-		ballPos, BallRadius, InitialBallVelocity,
-		mTextures.get(TextureID::Face));
+	// player and ball
+	mPlayer.Sprite = mTextures.get(TextureID::Paddle);
+	mBall.Size = glm::vec2(BallRadius * 2.f);
+	mBall.Sprite = mTextures.get(TextureID::Face);
+	resetPlayer();
 }
 
 Game::~Game()
@@ -255,51 +245,51 @@ Game::update(GLfloat dt)
 	auto vel = PlayerVelocity * dt;
 	if (mKeys[GLFW_KEY_A])
 	{
-		if (mPlayer->Position.x >= 0.f)
+		if (mPlayer.Position.x >= 0.f)
 		{
-			mPlayer->Position -= vel;
-			if (mBall->Stuck)
+			mPlayer.Position -= vel;
+			if (mBall.Stuck)
 			{
-				mBall->Position -= vel;
+				mBall.Position -= vel;
 			}
 		}
 	}
 
 	if (mKeys[GLFW_KEY_D])
 	{
-		if (mPlayer->Position.x + mPlayer->Size.x < ScreenWidth)
+		if (mPlayer.Position.x + mPlayer.Size.x < ScreenWidth)
 		{
-			mPlayer->Position += vel;
-			if (mBall->Stuck)
+			mPlayer.Position += vel;
+			if (mBall.Stuck)
 			{
-				mBall->Position += vel;
+				mBall.Position += vel;
 			}
 		}
 	}
 	if (mKeys[GLFW_KEY_SPACE])
 	{
-		mBall->Stuck = false;
+		mBall.Stuck = false;
 	}
 
 	// update the ball
-	if (!mBall->Stuck)
+	if (!mBall.Stuck)
 	{
-		mBall->Position += mBall->Velocity * dt;
-		if (mBall->Position.x <= 0.f)
+		mBall.Position += mBall.Velocity * dt;
+		if (mBall.Position.x <= 0.f)
 		{
-			mBall->Position.x = 0.f;
-			mBall->Velocity.x = -mBall->Velocity.x;
+			mBall.Position.x = 0.f;
+			mBall.Velocity.x = -mBall.Velocity.x;
 		}
-		else if (mBall->Position.x + mBall->Size.x >= ScreenWidth)
+		else if (mBall.Position.x + mBall.Size.x >= ScreenWidth)
 		{
-			mBall->Position.x = ScreenWidth - mBall->Size.x;
-			mBall->Velocity.x = -mBall->Velocity.x;
+			mBall.Position.x = ScreenWidth - mBall.Size.x;
+			mBall.Velocity.x = -mBall.Velocity.x;
 		}
 
-		if (mBall->Position.y <= 0.f)
+		if (mBall.Position.y <= 0.f)
 		{
-			mBall->Position.y = 0.f;
-			mBall->Velocity.y = -mBall->Velocity.y;
+			mBall.Position.y = 0.f;
+			mBall.Velocity.y = -mBall.Velocity.y;
 		}
 	}
 
@@ -307,8 +297,8 @@ Game::update(GLfloat dt)
 	doCollisions();
 
 	mBallParticles->update(dt, 2,
-	                   mBall->Position + glm::vec2(BallRadius/2.f),
-	                   mBall->Velocity);
+	                   mBall.Position + glm::vec2(BallRadius/2.f),
+	                   mBall.Velocity);
 
 	// remove and update the powerups
 	std::erase_if(mPowerUPs, [](const auto &p) {
@@ -326,11 +316,11 @@ Game::update(GLfloat dt)
 	}
 	if (!mStickyEffect.update(dt))
 	{
-		mPlayer->Color = glm::vec3(1.f);
+		mPlayer.Color = glm::vec3(1.f);
 	}
 	if (!mPassThroughEffect.update(dt))
 	{
-		mBall->Color = glm::vec3(1.f);
+		mBall.Color = glm::vec3(1.f);
 	}
 	if (!mConfuseEffect.update(dt))
 	{
@@ -341,7 +331,7 @@ Game::update(GLfloat dt)
 		mEffects->Chaos = false;
 	}
 
-	if (mBall->Position.y >= ScreenHeight)
+	if (mBall.Position.y >= ScreenHeight)
 	{
 		if (--mLives == 0)
 		{
@@ -374,7 +364,7 @@ void Game::render()
 
 		mRenderer->draw(mLevels[mCurrentLevel]);
 
-		mRenderer->draw(mPlayer->Sprite, mPlayer->Position, mPlayer->Size, mPlayer->Color);
+		mRenderer->draw(mPlayer.Sprite, mPlayer.Position, mPlayer.Size, mPlayer.Color);
 
 		for (PowerUP &p : mPowerUPs)
 		{
@@ -383,7 +373,7 @@ void Game::render()
 
 		mRenderer->draw(*mBallParticles);
 
-		mRenderer->draw(mBall->Sprite, mBall->Position, mBall->Size, mBall->Color);
+		mRenderer->draw(mBall.Sprite, mBall.Position, mBall.Size, mBall.Color);
 
 		mEffects->EndRender();
 		mEffects->Render(glfwGetTime());
@@ -422,17 +412,16 @@ Game::resetLevel()
 void
 Game::resetPlayer()
 {
-	mPlayer->Size = PlayerSize;
-	mPlayer->Position = glm::vec2(
-		ScreenWidth / 2 - PlayerSize.x / 2,
-		ScreenHeight - PlayerSize.y);
-	mPlayer->Color = glm::vec3(1.0f);
+	mPlayer.Size = PlayerSize;
+	mPlayer.Position.x = (ScreenWidth - PlayerSize.x) * 0.5f;
+	mPlayer.Position.y = ScreenHeight - PlayerSize.y;
+	mPlayer.Color = glm::vec3(1.0f);
 
-	mBall->Position = mPlayer->Position
-		+ glm::vec2(PlayerSize.x / 2 - BallRadius, -BallRadius * 2.0);
-	mBall->Velocity = InitialBallVelocity;
-	mBall->Color = glm::vec3(1.f);
-	mBall->Stuck = true;
+	mBall.Position.x = mPlayer.Position.x + PlayerSize.x * 0.5f - BallRadius;
+	mBall.Position.y = mPlayer.Position.y - BallRadius * 2.f;
+	mBall.Velocity = InitialBallVelocity;
+	mBall.Color = glm::vec3(1.f);
+	mBall.Stuck = true;
 
 	// remove the powerups
 	mPowerUPs.clear();
@@ -453,18 +442,18 @@ Game::activatePowerUP(enum PowerUP::Type type)
 	switch (type)
 	{
 	case PowerUP::SPEED:
-		mBall->Velocity *= 1.2;
+		mBall.Velocity *= 1.2;
 		break;
 	case PowerUP::STICKY:
-		mPlayer->Color = glm::vec3(1.0f, 0.5f, 1.0f);
+		mPlayer.Color = glm::vec3(1.0f, 0.5f, 1.0f);
 		mStickyEffect.enableFor(20.f);
 		break;
 	case PowerUP::PASSTHROUGH:
-		mBall->Color = glm::vec3(1.0f, 0.5f, 0.5f);
+		mBall.Color = glm::vec3(1.0f, 0.5f, 0.5f);
 		mPassThroughEffect.enableFor(10.f);
 		break;
 	case PowerUP::PAD_INCREASE:
-		mPlayer->Size.x += 50;
+		mPlayer.Size.x += 50;
 		break;
 	case PowerUP::CONFUSE:
 		if (!mChaosEffect.isEnabled())
@@ -561,7 +550,7 @@ Game::doCollisions()
 			continue;
 		}
 
-		auto [col, dir, vec] = checkCollision(*mBall, obj.position, size);
+		auto [col, dir, vec] = checkCollision(mBall, obj.position, size);
 		if (!col)
 		{
 			continue;
@@ -583,49 +572,49 @@ Game::doCollisions()
 		}
 		else if (dir == Direction::Left || dir == Direction::Right)
 		{
-			mBall->Velocity.x = -mBall->Velocity.x;
+			mBall.Velocity.x = -mBall.Velocity.x;
 			float penetration = BallRadius - std::abs(vec.x);
 			if (dir == Direction::Left)
 			{
-				mBall->Position.x += penetration;
+				mBall.Position.x += penetration;
 			}
 			else
 			{
-				mBall->Position.x -= penetration;
+				mBall.Position.x -= penetration;
 			}
 		}
 		else
 		{
-			mBall->Velocity.y = -mBall->Velocity.y;
+			mBall.Velocity.y = -mBall.Velocity.y;
 			float penetration = BallRadius - std::abs(vec.y);
 			if (dir == Direction::Down)
 			{
-				mBall->Position.y += penetration;
+				mBall.Position.y += penetration;
 			}
 			else
 			{
-				mBall->Position.y -= penetration;
+				mBall.Position.y -= penetration;
 			}
 		}
 	}
 
 	// ball player collision
-	if (!mBall->Stuck)
+	if (!mBall.Stuck)
 	{
-		Collision c = checkCollision(*mBall, mPlayer->Position, mPlayer->Size);
+		Collision c = checkCollision(mBall, mPlayer.Position, mPlayer.Size);
 		if (std::get<0>(c))
 		{
-			float center = mPlayer->Position.x + mPlayer->Size.x / 2;
-			float distance = mBall->Position.x + BallRadius - center;
-			float percentage = distance / (mPlayer->Size.x / 2);
+			float center = mPlayer.Position.x + mPlayer.Size.x / 2;
+			float distance = mBall.Position.x + BallRadius - center;
+			float percentage = distance / (mPlayer.Size.x / 2);
 
 			float strength = 2.0f;
 
-			glm::vec2 oldVelocity = mBall->Velocity;
-			mBall->Velocity.x = InitialBallVelocity.x * percentage * strength;
-			mBall->Velocity.y = -1.0f * std::abs(mBall->Velocity.y);
-			mBall->Velocity = glm::normalize(mBall->Velocity) * glm::length(oldVelocity);
-			mBall->Stuck = mStickyEffect.isEnabled();
+			glm::vec2 oldVelocity = mBall.Velocity;
+			mBall.Velocity.x = InitialBallVelocity.x * percentage * strength;
+			mBall.Velocity.y = -1.0f * std::abs(mBall.Velocity.y);
+			mBall.Velocity = glm::normalize(mBall.Velocity) * glm::length(oldVelocity);
+			mBall.Stuck = mStickyEffect.isEnabled();
 		}
 	}
 
@@ -636,7 +625,7 @@ Game::doCollisions()
 		{
 			p.Destroyed = true;
 		}
-		else if (checkCollision(*mPlayer, p))
+		else if (checkCollision(mPlayer, p))
 		{
 			activatePowerUP(p.Type);
 			p.Destroyed = true;
@@ -653,42 +642,53 @@ shouldSpawn(unsigned chance)
 void
 Game::spawnPowerUPs(glm::vec2 pos)
 {
+	PowerUP pow;
 	if (shouldSpawn(75))
 	{
-		mPowerUPs.emplace_back(
-			PowerUP::SPEED, glm::vec3(0.5f, 0.5f, 1.0f), pos,
-			mTextures.get(TextureID::PowerupSpeed));
+		pow.Type = PowerUP::SPEED;
+		pow.Color = glm::vec3(0.5f, 0.5f, 1.0f);
+		pow.Sprite = mTextures.get(TextureID::PowerupSpeed);
 	}
 	else if (shouldSpawn(75))
 	{
-		mPowerUPs.emplace_back(
-			PowerUP::STICKY, glm::vec3(1.0f, 0.5f, 1.0f), pos,
-			mTextures.get(TextureID::PowerupSticky));
+		pow.Type = PowerUP::STICKY;
+		pow.Color = glm::vec3(1.0f, 0.5f, 1.0f);
+		pow.Sprite = mTextures.get(TextureID::PowerupSticky);
 	}
 	else if (shouldSpawn(75))
 	{
-		mPowerUPs.emplace_back(
-			PowerUP::PASSTHROUGH, glm::vec3(0.5f, 1.0f, 0.5f), pos,
-			mTextures.get(TextureID::PowerupPassthrough));
+		pow.Type = PowerUP::PASSTHROUGH;
+		pow.Color = glm::vec3(0.5f, 1.0f, 0.5f);
+		pow.Sprite = mTextures.get(TextureID::PowerupPassthrough);
 	}
 	else if (shouldSpawn(75))
 	{
-		mPowerUPs.emplace_back(
-			PowerUP::PAD_INCREASE, glm::vec3(1.0f, 0.6f, 0.4f), pos,
-			mTextures.get(TextureID::PowerupIncrease));
+		pow.Type = PowerUP::PAD_INCREASE;
+		pow.Color = glm::vec3(1.0f, 0.6f, 0.4f);
+		pow.Sprite = mTextures.get(TextureID::PowerupIncrease);
 	}
 	else if (shouldSpawn(15))
 	{
-		mPowerUPs.emplace_back(
-			PowerUP::CONFUSE, glm::vec3(1.0f, 0.3f, 0.3f), pos,
-			mTextures.get(TextureID::PowerupConfuse));
+		pow.Type = PowerUP::CONFUSE;
+		pow.Color = glm::vec3(1.0f, 0.3f, 0.3f);
+		pow.Sprite = mTextures.get(TextureID::PowerupConfuse);
 	}
 	else if (shouldSpawn(15))
 	{
-		mPowerUPs.emplace_back(
-			PowerUP::CHAOS, glm::vec3(0.9f, 0.25f, 0.25f), pos,
-			mTextures.get(TextureID::PowerupChaos));
+		pow.Type = PowerUP::CHAOS;
+		pow.Color = glm::vec3(0.9f, 0.25f, 0.25f);
+		pow.Sprite = mTextures.get(TextureID::PowerupChaos);
 	}
+	else
+	{
+		return;
+	}
+	pow.Position = pos;
+	pow.Size = PowerUPSize;
+	pow.Velocity = PowerUPVelocity;
+	pow.Destroyed = false;
+
+	mPowerUPs.push_back(pow);
 }
 
 void

@@ -6,12 +6,8 @@
 
 #include "gameobject.hpp"
 
-const glm::vec2 POWERUP_SIZE(60, 20);
-const glm::vec2 POWERUP_VELOCITY(0.0f, 150.0f);
-
-class PowerUP : public GameObject
+struct PowerUP : public GameObject
 {
-public:
 	enum Type {
 		SPEED,
 		STICKY,
@@ -20,9 +16,4 @@ public:
 		CONFUSE,
 		CHAOS,
 	} Type;
-
-	PowerUP(enum Type type, glm::vec3 color, glm::vec2 pos, Texture2D tex) :
-		GameObject(pos, POWERUP_SIZE, tex, color, POWERUP_VELOCITY),
-		Type(type)
-	{}
 };

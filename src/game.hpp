@@ -12,8 +12,9 @@
 #include "powerup.hpp"
 #include "resources.hpp"
 #include "resourceholder.hpp"
+#include "gameobject.hpp"
+#include "ball.hpp"
 
-class BallObject;
 class ParticleGen;
 class Postprocess;
 
@@ -52,8 +53,8 @@ private:
 	// world data
 	std::vector<GameLevel> mLevels;
 	std::vector<PowerUP> mPowerUPs;
-	std::unique_ptr<GameObject> mPlayer;
-	std::unique_ptr<BallObject> mBall;
+	GameObject mPlayer;
+	BallObject mBall;
 	unsigned mCurrentLevel;
 	unsigned mLives;
 
