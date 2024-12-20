@@ -1,6 +1,5 @@
 #include <iostream>
 
-#include "entities.hpp"
 #include "font.hpp"
 #include "glcheck.hpp"
 #include "particle.hpp"
@@ -212,6 +211,23 @@ Renderer::draw(Texture2D texture, glm::vec2 position, glm::vec2 size, glm::vec3 
 
 	texture.bind(0);
 	drawBuffers();
+}
+
+void
+Renderer::draw(const Paddle &paddle)
+{
+	draw(paddle.texture, paddle.pos, paddle.size, paddle.color);
+}
+void
+Renderer::draw(const Ball &ball)
+{
+	draw(ball.texture, ball.pos, ball.size, ball.color);
+}
+
+void
+Renderer::draw(const PowerUP &pow)
+{
+	draw(pow.texture, pow.pos, pow.size, pow.color);
 }
 
 void

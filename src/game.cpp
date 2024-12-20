@@ -369,16 +369,16 @@ void Game::render()
 
 		mRenderer->draw(mLevels[mCurrentLevel]);
 
-		mRenderer->draw(mPlayer.texture, mPlayer.pos, mPlayer.size, mPlayer.color);
+		mRenderer->draw(mPlayer);
 
-		for (PowerUP &p : mPowerUPs)
+		for (const auto &p : mPowerUPs)
 		{
-			mRenderer->draw(p.texture, p.pos, p.size, p.color);
+			mRenderer->draw(p);
 		}
 
 		mRenderer->draw(*mBallParticles);
 
-		mRenderer->draw(mBall.texture, mBall.pos, mBall.size, mBall.color);
+		mRenderer->draw(mBall);
 
 		mEffects->EndRender();
 		mEffects->Render(glfwGetTime());
