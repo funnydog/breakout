@@ -22,7 +22,7 @@ static constexpr glm::vec2 PowerUPSize(60, 20);
 static constexpr glm::vec2 PowerUPVelocity(0.0f, 150.0f);
 static constexpr unsigned InitialLives = 3;
 
-static const char *levels[] = {
+static constexpr std::string_view levels[] = {
 	"assets/levels/one.txt",
 	"assets/levels/two.txt",
 	"assets/levels/three.txt",
@@ -119,7 +119,7 @@ Game::Game()
 	// setup the world data
 	// levels
 	auto &blocksTex = mTextures.get(TextureID::Blocks);
-	for (const char *path : levels)
+	for (auto path : levels)
 	{
 		Level level;
 		if (!loadLevel(path, level))
