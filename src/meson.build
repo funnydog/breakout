@@ -18,7 +18,6 @@ executable(
     'font.cpp',
     'game.cpp',
     'glcheck.cpp',
-    'level.cpp',
     'main.cpp',
     'particle.cpp',
     'postprocess.cpp',

@@ -1,8 +1,8 @@
 #include <iostream>
 
+#include "entities.hpp"
 #include "font.hpp"
 #include "glcheck.hpp"
-#include "level.hpp"
 #include "particle.hpp"
 
 #include "renderer.hpp"
@@ -96,15 +96,22 @@ Renderer::draw(const std::string &text, glm::vec2 pos, Font &font, glm::vec3 col
 }
 
 void
-Renderer::draw(const GameLevel &level)
+Renderer::draw(const Level &level)
 {
-	static const glm::vec2 uvSize = {128.f/1024.f, 1.f};
-	static const glm::vec2 uvPos = {128.f/1024.f, 0.f};
+	static constexpr glm::vec2 uvSize = { 128.f/1024.f, 1.f };
+	static constexpr glm::vec2 uvPos[] = {
+		{0 * 128.f/1024.f, 0.f},
+		{1 * 128.f/1024.f, 0.f},
+		{2 * 128.f/1024.f, 0.f},
+		{3 * 128.f/1024.f, 0.f},
+		{4 * 128.f/1024.f, 0.f},
+		{5 * 128.f/1024.f, 0.f},
+	};
 
 	mSimpleVertices.clear();
 	beginBatch();
-	glm::vec2 brickSize = level.getBrickSize();
-	for (const auto &b : level.mBricks)
+	glm::vec2 blockSize = level.blockSize;
+	for (const auto &b : level.blocks)
 	{
 		if (b.dead)
 		{
@@ -114,8 +121,8 @@ Renderer::draw(const GameLevel &level)
 		for (auto unit : units)
 		{
 			SimpleVertex v;
-			v.pos = brickSize * unit + b.position;
-			v.uv = uvSize * unit + uvPos * b.type;
+			v.pos = blockSize * unit + b.position;
+			v.uv = uvSize * unit + uvPos[b.type];
 			mSimpleVertices.push_back(v);
 		}
 	}
@@ -128,7 +135,7 @@ Renderer::draw(const GameLevel &level)
 	                     GL_STREAM_DRAW));
 
 	mLevelShader.use();
-	level.getTexture().bind(0);
+	level.texture.bind(0);
 	drawBuffers();
 }
 

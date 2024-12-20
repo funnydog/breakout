@@ -10,7 +10,7 @@
 #include "shader.hpp"
 
 class Font;
-class GameLevel;
+struct Level;
 class ParticleGen;
 class Texture2D;
 
@@ -26,7 +26,7 @@ public:
 	void draw(const std::string &text, glm::vec2 pos,
 	          Font &font, glm::vec3 color = glm::vec3(1.0f));
 
-	void draw(const GameLevel &level);
+	void draw(const Level &level);
 
 	void draw(const ParticleGen &pg);
 

@@ -9,12 +9,12 @@
 #include "effect.hpp"
 #include "entities.hpp"
 #include "eventqueue.hpp"
-#include "level.hpp"
 #include "resources.hpp"
 #include "resourceholder.hpp"
 
 class ParticleGen;
 class Postprocess;
+class Renderer;
 
 class Game
 {
@@ -31,6 +31,7 @@ public:
 
 private:
 	void loadAssets();
+	bool loadLevel(const std::filesystem::path &path, Level &level);
 	void resetLevel();
 	void resetPlayer();
 
@@ -49,7 +50,7 @@ private:
 	} mState;
 
 	// world data
-	std::vector<GameLevel> mLevels;
+	std::vector<Level> mLevels;
 	std::vector<PowerUP> mPowerUPs;
 	Paddle mPlayer;
 	Ball mBall;

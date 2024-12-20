@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include <glm/glm.hpp>
 #include "texture.hpp"
 
@@ -39,5 +41,20 @@ struct PowerUP
 		CONFUSE,
 		CHAOS,
 	} type;
+	Texture2D texture;
+};
+
+struct Block
+{
+	glm::vec2 position;
+	unsigned type;
+	bool solid;
+	bool dead;
+};
+
+struct Level
+{
+	std::vector<Block> blocks;
+	glm::vec2 blockSize;
 	Texture2D texture;
 };

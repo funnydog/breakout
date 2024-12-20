@@ -1,5 +1,6 @@
 #include <cstdint>
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <sstream>
 #include <glm/gtc/matrix_transform.hpp>
@@ -9,6 +10,7 @@
 #include "glcheck.hpp"
 #include "particle.hpp"
 #include "postprocess.hpp"
+#include "renderer.hpp"
 
 namespace
 {
@@ -119,13 +121,14 @@ Game::Game()
 	auto &blocksTex = mTextures.get(TextureID::Blocks);
 	for (const char *path : levels)
 	{
-		GameLevel level;
-		if (!level.load(path, blocksTex, ScreenWidth, ScreenHeight / 2))
+		Level level;
+		if (!loadLevel(path, level))
 		{
 			std::cerr << "Level '" << path << "' error\n";
 			continue;
 		}
-		mLevels.push_back(level);
+		level.texture = blocksTex;
+		mLevels.push_back(std::move(level));
 	}
 
 	// player and ball
@@ -340,7 +343,10 @@ Game::update(GLfloat dt)
 		resetPlayer();
 	}
 
-	if(mLevels[mCurrentLevel].isCompleted())
+	const auto &bricks = mLevels[mCurrentLevel].blocks;
+	if (std::all_of(bricks.begin(), bricks.end(),[](const auto &b) {
+		return b.solid||b.dead;
+	}))
 	{
 		resetLevel();
 		resetPlayer();
@@ -401,10 +407,71 @@ void Game::render()
 	}
 }
 
+bool
+Game::loadLevel(const std::filesystem::path &path, Level &level)
+{
+	level.blocks.clear();
+	std::ifstream input(path);
+	if (input.fail())
+	{
+		std::cerr << "Game::loadLevel() - failed to load \""
+		          << path << "\".";
+		return false;
+	}
+
+	std::vector<std::vector<unsigned>> tileData;
+	std::string line;
+	while (std::getline(input, line))
+	{
+		std::istringstream ss(line);
+		std::vector<unsigned> row;
+
+		unsigned tileCode;
+		while (ss >> tileCode)
+		{
+			row.push_back(tileCode);
+		}
+
+		tileData.push_back(row);
+	}
+
+	auto height = tileData.size();
+	auto width = tileData[0].size();
+	float unit_width = static_cast<float>(ScreenWidth / width);
+	float unit_height = static_cast<float>(ScreenHeight / 2 / height);
+	level.blockSize = glm::vec2(unit_width, unit_height);
+
+	float offset = static_cast<float>((ScreenWidth % width) / 2);
+	glm::vec2 pos(0.f);
+	for (decltype(height) y = 0; y < height; ++y, pos.y += unit_height)
+	{
+		pos.x = offset;
+		for (decltype(width) x = 0; x < width; ++x, pos.x += unit_width)
+		{
+			Block b{pos, tileData[y][x], false, false};
+
+			switch (b.type)
+			{
+			case 1: b.solid = true;
+			case 2:
+			case 3:
+			case 4:
+			case 5: break;
+			default: continue; // empty brick
+			}
+			level.blocks.push_back(b);
+		}
+	}
+	return true;
+}
+
 void
 Game::resetLevel()
 {
-	mLevels[mCurrentLevel].reset();
+	for (auto &block : mLevels[mCurrentLevel].blocks)
+	{
+		block.dead = false;
+	}
 	mLives = InitialLives;
 }
 
@@ -541,8 +608,8 @@ void
 Game::doCollisions()
 {
 	// ball bricks collision
-	glm::vec2 size = mLevels[mCurrentLevel].getBrickSize();
-	for (auto &obj : mLevels[mCurrentLevel].mBricks)
+	glm::vec2 size = mLevels[mCurrentLevel].blockSize;
+	for (auto &obj : mLevels[mCurrentLevel].blocks)
 	{
 		if (obj.dead)
 		{
