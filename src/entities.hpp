@@ -34,12 +34,12 @@ struct PowerUP
 	bool dead;
 	enum Type
 	{
-		SPEED,
-		STICKY,
-		PASSTHROUGH,
-		PAD_INCREASE,
-		CONFUSE,
-		CHAOS,
+		Speed,
+		Sticky,
+		PassThrough,
+		PadIncrease,
+		Confuse,
+		Chaos,
 	} type;
 	Texture2D texture;
 };

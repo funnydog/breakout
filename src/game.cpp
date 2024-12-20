@@ -509,28 +509,28 @@ Game::activatePowerUP(enum PowerUP::Type type)
 {
 	switch (type)
 	{
-	case PowerUP::SPEED:
+	case PowerUP::Speed:
 		mBall.vel *= 1.2;
 		break;
-	case PowerUP::STICKY:
+	case PowerUP::Sticky:
 		mPlayer.color = glm::vec3(1.0f, 0.5f, 1.0f);
 		mStickyEffect.enableFor(20.f);
 		break;
-	case PowerUP::PASSTHROUGH:
+	case PowerUP::PassThrough:
 		mBall.color = glm::vec3(1.0f, 0.5f, 0.5f);
 		mPassThroughEffect.enableFor(10.f);
 		break;
-	case PowerUP::PAD_INCREASE:
+	case PowerUP::PadIncrease:
 		mPlayer.size.x += 50;
 		break;
-	case PowerUP::CONFUSE:
+	case PowerUP::Confuse:
 		if (!mChaosEffect.isEnabled())
 		{
 			mConfuseEffect.enableFor(15.f);
 			mEffects->Confuse = true;
 		}
 		break;
-	case PowerUP::CHAOS:
+	case PowerUP::Chaos:
 		if (!mConfuseEffect.isEnabled())
 		{
 			mChaosEffect.enableFor(15.f);
@@ -713,37 +713,37 @@ Game::spawnPowerUPs(glm::vec2 pos)
 	PowerUP pow;
 	if (shouldSpawn(75))
 	{
-		pow.type = PowerUP::SPEED;
+		pow.type = PowerUP::Speed;
 		pow.color = glm::vec3(0.5f, 0.5f, 1.0f);
 		pow.texture = mTextures.get(TextureID::PowerupSpeed);
 	}
 	else if (shouldSpawn(75))
 	{
-		pow.type = PowerUP::STICKY;
+		pow.type = PowerUP::Sticky;
 		pow.color = glm::vec3(1.0f, 0.5f, 1.0f);
 		pow.texture = mTextures.get(TextureID::PowerupSticky);
 	}
 	else if (shouldSpawn(75))
 	{
-		pow.type = PowerUP::PASSTHROUGH;
+		pow.type = PowerUP::PassThrough;
 		pow.color = glm::vec3(0.5f, 1.0f, 0.5f);
 		pow.texture = mTextures.get(TextureID::PowerupPassthrough);
 	}
 	else if (shouldSpawn(75))
 	{
-		pow.type = PowerUP::PAD_INCREASE;
+		pow.type = PowerUP::PadIncrease;
 		pow.color = glm::vec3(1.0f, 0.6f, 0.4f);
 		pow.texture = mTextures.get(TextureID::PowerupIncrease);
 	}
 	else if (shouldSpawn(15))
 	{
-		pow.type = PowerUP::CONFUSE;
+		pow.type = PowerUP::Confuse;
 		pow.color = glm::vec3(1.0f, 0.3f, 0.3f);
 		pow.texture = mTextures.get(TextureID::PowerupConfuse);
 	}
 	else if (shouldSpawn(15))
 	{
-		pow.type = PowerUP::CHAOS;
+		pow.type = PowerUP::Chaos;
 		pow.color = glm::vec3(0.9f, 0.25f, 0.25f);
 		pow.texture = mTextures.get(TextureID::PowerupChaos);
 	}
