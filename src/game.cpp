@@ -408,11 +408,11 @@ Game::resetPlayer()
 		ScreenHeight - PlayerSize.y);
 	mPlayer->Color = glm::vec3(1.0f);
 
-	mBall->Reset(
-		mPlayer->Position + glm::vec2(
-			PlayerSize.x / 2 - BallRadius,
-			-BallRadius * 2),
-		InitialBallVelocity);
+	mBall->Position = mPlayer->Position
+		+ glm::vec2(PlayerSize.x / 2 - BallRadius, -BallRadius * 2.0);
+	mBall->Velocity = InitialBallVelocity;
+	mBall->Color = glm::vec3(1.f);
+	mBall->Stuck = true;
 
 	// remove the powerups
 	mPowerUPs.clear();

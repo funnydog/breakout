@@ -35,12 +35,3 @@ BallObject::Move(float dt, GLuint window_width)
 
 	return Position;
 }
-
-void
-BallObject::Reset(glm::vec2 pos, glm::vec2 vel)
-{
-	Position = pos;
-	Velocity = vel;
-	Color = glm::vec3(1.0f);
-	Stuck = true;
-}

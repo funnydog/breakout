@@ -14,6 +14,4 @@ public:
 	BallObject(glm::vec2 pos, float radius, glm::vec2 vel, Texture2D sprite);
 
 	glm::vec2 Move(float dt, GLuint window_width);
-
-	void Reset(glm::vec2 pos, glm::vec2 vel);
 };
