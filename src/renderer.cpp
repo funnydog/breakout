@@ -331,7 +331,8 @@ Renderer::draw(const PowerUP &pow)
 void
 Renderer::saveBatch()
 {
-	mBatches.emplace_back(mVertexOffset, mIndexOffset, mIndexCount-mIndexOffset);
+	mBatches.emplace_back(mVertexOffset, mIndexOffset*sizeof(mIndices[0]),
+	                      mIndexCount-mIndexOffset);
 	mVertexOffset = mVertexCount;
 	mIndexOffset = mIndexCount;
 }
