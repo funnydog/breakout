@@ -1,5 +1,7 @@
 #include <iostream>
 
+#include <glm/gtc/matrix_transform.hpp>
+
 #include "font.hpp"
 #include "glcheck.hpp"
 #include "particle.hpp"
@@ -17,10 +19,11 @@ static const glm::vec2 units[] = {
 };
 }
 
-Renderer::Renderer(const Shader &textShader,
-                             const Shader &levelShader,
-                             const Shader &particleShader,
-                             const Shader &spriteShader)
+Renderer::Renderer(unsigned screenWidth, unsigned screenHeight,
+                   const Shader &textShader,
+                   const Shader &levelShader,
+                   const Shader &particleShader,
+                   const Shader &spriteShader)
 	: mVertexOffset(0)
 	, mVertexCount(0)
 	, mIndexOffset(0)
@@ -53,6 +56,27 @@ Renderer::Renderer(const Shader &textShader,
 	glCheck(glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE,
 	                              sizeof(ColorVertex),
 	                              reinterpret_cast<GLvoid*>(offsetof(ColorVertex, color))));
+
+	// create the orthographic projection matrix
+	glm::mat4 proj = glm::ortho(
+		0.0f, static_cast<GLfloat>(screenWidth),
+		static_cast<GLfloat>(screenHeight), 0.0f,
+		-1.0f, 1.0f);
+
+	// configure the shaders
+	mTextShader.use();
+	mTextShader.getUniform("projection").setMatrix4(proj);
+
+	mLevelShader.use();
+	mLevelShader.getUniform("image").setInteger(0);
+	mLevelShader.getUniform("projection").setMatrix4(proj);
+
+	mParticleShader.use();
+	mParticleShader.getUniform("sprite").setInteger(0);
+	mParticleShader.getUniform("projection").setMatrix4(proj);
+
+	mSpriteShader.use();
+	mSpriteShader.getUniform("projection").setMatrix4(proj);
 }
 
 Renderer::~Renderer()

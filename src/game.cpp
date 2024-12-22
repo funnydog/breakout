@@ -2,7 +2,6 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <glm/gtc/matrix_transform.hpp>
 
 #include "font.hpp"
 #include "game.hpp"
@@ -72,33 +71,15 @@ Game::Game()
 	// load the assets
 	loadAssets();
 
-	// create the orthographic projection matrix
-	glm::mat4 proj = glm::ortho(
-		0.0f, static_cast<GLfloat>(ScreenWidth),
-		static_cast<GLfloat>(ScreenHeight), 0.0f,
-		-1.0f, 1.0f);
-
-	// configure the shaders
 	auto spriteShader = mShaders.get(ShaderID::Sprite);
-	spriteShader.use();
-	spriteShader.getUniform("projection").setMatrix4(proj);
-
 	auto textShader = mShaders.get(ShaderID::Text);
-	textShader.use();
-	textShader.getUniform("projection").setMatrix4(proj);
-
 	auto particleShader = mShaders.get(ShaderID::Particle);
-	particleShader.use();
-	particleShader.getUniform("sprite").setInteger(0);
-	particleShader.getUniform("projection").setMatrix4(proj);
-
 	auto levelShader = mShaders.get(ShaderID::Blocks);
-	levelShader.use();
-	levelShader.getUniform("image").setInteger(0);
-	levelShader.getUniform("projection").setMatrix4(proj);
 
 	// make the batch renderer
 	mRenderer = std::make_unique<Renderer>(
+		ScreenWidth,
+		ScreenHeight,
 		textShader,
 		levelShader,
 		particleShader,

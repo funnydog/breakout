@@ -17,10 +17,11 @@ class Texture2D;
 class Renderer
 {
 public:
-	Renderer(const Shader &textShader,
-	              const Shader &levelShader,
-	              const Shader &particleShader,
-	              const Shader &spriteShader);
+	Renderer(unsigned screenWidth, unsigned screenHeight,
+	         const Shader &textShader,
+	         const Shader &levelShader,
+	         const Shader &particleShader,
+	         const Shader &spriteShader);
 	~Renderer();
 
 	void clear(glm::vec4 color) const;
