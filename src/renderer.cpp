@@ -96,6 +96,7 @@ Renderer::Renderer(unsigned screenWidth, unsigned screenHeight,
 
 	// configure the shaders
 	mTextShader.use();
+	mTextShader.getUniform("image").setInteger(0);
 	mTextShader.getUniform("projection").setMatrix4(proj);
 
 	mLevelShader.use();
@@ -103,7 +104,7 @@ Renderer::Renderer(unsigned screenWidth, unsigned screenHeight,
 	mLevelShader.getUniform("projection").setMatrix4(proj);
 
 	mParticleShader.use();
-	mParticleShader.getUniform("sprite").setInteger(0);
+	mParticleShader.getUniform("image").setInteger(0);
 	mParticleShader.getUniform("projection").setMatrix4(proj);
 
 	mPostShader.use();
@@ -113,6 +114,7 @@ Renderer::Renderer(unsigned screenWidth, unsigned screenHeight,
 	mPostShader.getUniform("blur_kernel").setFloat1fv(blur_kernel, 9);
 
 	mSpriteShader.use();
+	mSpriteShader.getUniform("image").setInteger(0);
 	mSpriteShader.getUniform("projection").setMatrix4(proj);
 }
 
