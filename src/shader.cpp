@@ -1,8 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 
-#include "glcheck.hpp"
-
+#include <GL/glew.h>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "glcheck.hpp"
@@ -10,31 +9,31 @@
 #include "utility.hpp"
 
 void
-ShaderUniform::setFloat(GLfloat value) const noexcept
+ShaderUniform::setFloat(float value) const noexcept
 {
 	glCheck(glUniform1f(mLocation, value));
 }
 
 void
-ShaderUniform::setFloat1fv(const GLfloat *floats, size_t size) const noexcept
+ShaderUniform::setFloat1fv(const float *floats, size_t size) const noexcept
 {
 	glCheck(glUniform1fv(mLocation, size, floats));
 }
 
 void
-ShaderUniform::setInteger(GLint value) const noexcept
+ShaderUniform::setInteger(int value) const noexcept
 {
 	glCheck(glUniform1i(mLocation, value));
 }
 
 void
-ShaderUniform::setInteger1iv(const GLint *ints, size_t size) const noexcept
+ShaderUniform::setInteger1iv(const int *ints, size_t size) const noexcept
 {
 	glCheck(glUniform1iv(mLocation, size, ints));
 }
 
 void
-ShaderUniform::setVector2f(GLfloat x, GLfloat y) const noexcept
+ShaderUniform::setVector2f(float x, float y) const noexcept
 {
 	glCheck(glUniform2f(mLocation, x, y));
 }
@@ -46,13 +45,13 @@ ShaderUniform::setVector2f(const glm::vec2 &value) const noexcept
 }
 
 void
-ShaderUniform::setVector2fv(const GLfloat floats[][2], size_t size) const noexcept
+ShaderUniform::setVector2fv(const float floats[][2], size_t size) const noexcept
 {
 	glCheck(glUniform2fv(mLocation, size, floats[0]));
 }
 
 void
-ShaderUniform::setVector3f(GLfloat x, GLfloat y, GLfloat z) const noexcept
+ShaderUniform::setVector3f(float x, float y, float z) const noexcept
 {
 	glCheck(glUniform3f(mLocation, x, y, z));
 }
@@ -64,13 +63,13 @@ ShaderUniform::setVector3f(const glm::vec3 &value) const noexcept
 }
 
 void
-ShaderUniform::setVector3fv(const GLfloat floats[][3], size_t size) const noexcept
+ShaderUniform::setVector3fv(const float floats[][3], size_t size) const noexcept
 {
 	glCheck(glUniform3fv(mLocation, size, floats[0]));
 }
 
 void
-ShaderUniform::setVector4f(GLfloat x, GLfloat y, GLfloat z, GLfloat w) const noexcept
+ShaderUniform::setVector4f(float x, float y, float z, float w) const noexcept
 {
 	glCheck(glUniform4f(mLocation, x, y, z, w));
 }
@@ -82,7 +81,7 @@ ShaderUniform::setVector4f(const glm::vec4 &value) const noexcept
 }
 
 void
-ShaderUniform::setVector4fv(const GLfloat floats[][4], size_t size) const noexcept
+ShaderUniform::setVector4fv(const float floats[][4], size_t size) const noexcept
 {
 	glCheck(glUniform4fv(mLocation, size, floats[0]));
 }
@@ -102,13 +101,13 @@ Shader::loadFromFile(const std::filesystem::path &vs,
 		mProgram = glCreateProgram();
 	}
 
-	if (!attachFile(Type::VERTEX, vs.c_str()))
+	if (!attachFile(Type::Vertex, vs.c_str()))
 	{
 		std::cerr << "Shader::loadFromFile() - cannot load "
 		          << vs.string() << std::endl;
 		return false;
 	}
-	if (!attachFile(Type::FRAGMENT, fs.c_str()))
+	if (!attachFile(Type::Fragment, fs.c_str()))
 	{
 		std::cerr << "Shader::loadFromFile() - cannot load "
 		          << fs.string() << std::endl;
@@ -159,10 +158,10 @@ Shader::attachString(Shader::Type type, const std::string &source) const noexcep
 	GLenum gltype;
 	switch (type)
 	{
-	case Type::VERTEX:   gltype = GL_VERTEX_SHADER;   break;
-	case Type::FRAGMENT: gltype = GL_FRAGMENT_SHADER; break;
-	case Type::GEOMETRY: gltype = GL_GEOMETRY_SHADER; break;
-	case Type::COMPUTE:  gltype = GL_COMPUTE_SHADER;  break;
+	case Type::Vertex:   gltype = GL_VERTEX_SHADER;   break;
+	case Type::Fragment: gltype = GL_FRAGMENT_SHADER; break;
+	case Type::Geometry: gltype = GL_GEOMETRY_SHADER; break;
+	case Type::Compute:  gltype = GL_COMPUTE_SHADER;  break;
 	default:
 		std::cerr << "Shader::attachString() - undefined shader type"
 		          << static_cast<int>(type) << "\n";
@@ -182,14 +181,15 @@ Shader::attachString(Shader::Type type, const std::string &source) const noexcep
 		glCheck(glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length));
 		std::string message(length, 0);
 		glCheck(glGetShaderInfoLog(shader, length, nullptr, message.data()));
-		glCheck(glDeleteShader(shader));
 		std::cerr << "Shader::attachString() - compilation failed\n"
 		          << message << "\n";
-		return false;
 	}
-	glCheck(glAttachShader(mProgram, shader));
+	else
+	{
+		glCheck(glAttachShader(mProgram, shader));
+	}
 	glCheck(glDeleteShader(shader));
-	return true;
+	return success;
 }
 
 bool
@@ -213,9 +213,8 @@ Shader::link() const noexcept
 		glCheck(glGetProgramInfoLog(mProgram, length, nullptr, message.data()));
 		std::cerr << "Shader::link() - link failed\n"
 		          << message << "\n";
-		return false;
 	}
-	return true;
+	return success;
 }
 
 ShaderUniform
