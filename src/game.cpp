@@ -74,6 +74,7 @@ Game::Game()
 	auto spriteShader = mShaders.get(ShaderID::Sprite);
 	auto textShader = mShaders.get(ShaderID::Text);
 	auto particleShader = mShaders.get(ShaderID::Particle);
+	auto postShader = mShaders.get(ShaderID::Postprocess);
 	auto levelShader = mShaders.get(ShaderID::Blocks);
 
 	// make the batch renderer
@@ -83,11 +84,11 @@ Game::Game()
 		textShader,
 		levelShader,
 		particleShader,
+		postShader,
 		spriteShader);
 
 	// set-up the effects
 	mEffects = std::make_unique<Postprocess>(
-		mShaders.get(ShaderID::Postprocess),
 		ScreenWidth,
 		ScreenHeight);
 
@@ -342,7 +343,7 @@ void Game::render()
 	auto &font = mFonts.get(FontID::Title);
 	if (mState == State::Active || mState == State::Menu)
 	{
-		mEffects->BeginRender();
+		mEffects->beginRender();
 
 		auto background = mTextures.get(TextureID::Background);
 		mRenderer->draw(background,
@@ -362,8 +363,9 @@ void Game::render()
 
 		mRenderer->draw(mBall);
 
-		mEffects->EndRender();
-		mEffects->Render(glfwGetTime());
+		mEffects->endRender();
+
+		mRenderer->draw(*mEffects, glfwGetTime());
 
 		std::stringstream ss;
 		ss << "Lives: " << mLives;

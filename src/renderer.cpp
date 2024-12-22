@@ -5,6 +5,7 @@
 #include "font.hpp"
 #include "glcheck.hpp"
 #include "particle.hpp"
+#include "postprocess.hpp"
 
 #include "renderer.hpp"
 
@@ -17,12 +18,41 @@ static const glm::vec2 units[] = {
 	{ 1.f, 0.f },
 	{ 1.f, 1.f },
 };
+static const float fullquad[][4] = {
+	{ -1.f,  1.f, 0.f, 1.f },
+	{ -1.f, -1.f, 0.f, 0.f },
+	{  1.f,  1.f, 1.f, 1.f },
+	{  1.f, -1.f, 1.f, 0.f },
+};
+static const float offset = 1.0f / 300.0f;
+static const GLfloat offsets[][2] = {
+	{ -offset,  offset },
+	{    0.0f,  offset },
+	{  offset,  offset },
+	{ -offset,  0.0f   },
+	{    0.0f,  0.0f   },
+	{  offset,  0.0f   },
+	{ -offset, -offset },
+	{    0.0f, -offset },
+	{  offset, -offset },
+};
+static const GLint edge_kernel[9] = {
+	-1, -1, -1,
+	-1,  8, -1,
+	-1, -1, -1,
+};
+static const GLfloat blur_kernel[9] = {
+	1.0f / 16.0f, 2.0f / 16.0f, 1.0f / 16.0f,
+	2.0f / 16.0f, 4.0f / 16.0f, 2.0f / 16.0f,
+	1.0f / 16.0f, 2.0f / 16.0f, 1.0f / 16.0f,
+};
 }
 
 Renderer::Renderer(unsigned screenWidth, unsigned screenHeight,
                    const Shader &textShader,
                    const Shader &levelShader,
                    const Shader &particleShader,
+                   const Shader &postShader,
                    const Shader &spriteShader)
 	: mVertexOffset(0)
 	, mVertexCount(0)
@@ -31,6 +61,7 @@ Renderer::Renderer(unsigned screenWidth, unsigned screenHeight,
 	, mTextShader(textShader)
 	, mLevelShader(levelShader)
 	, mParticleShader(particleShader)
+	, mPostShader(postShader)
 	, mSpriteShader(spriteShader)
 {
 	// bind a buffer to allow calling glVertexAttribPointer()
@@ -74,6 +105,12 @@ Renderer::Renderer(unsigned screenWidth, unsigned screenHeight,
 	mParticleShader.use();
 	mParticleShader.getUniform("sprite").setInteger(0);
 	mParticleShader.getUniform("projection").setMatrix4(proj);
+
+	mPostShader.use();
+	mPostShader.getUniform("scene").setInteger(0);
+	mPostShader.getUniform("offsets").setVector2fv(offsets, 9);
+	mPostShader.getUniform("edge_kernel").setInteger1iv(edge_kernel, 9);
+	mPostShader.getUniform("blur_kernel").setFloat1fv(blur_kernel, 9);
 
 	mSpriteShader.use();
 	mSpriteShader.getUniform("projection").setMatrix4(proj);
@@ -231,6 +268,27 @@ Renderer::draw(const ParticleGen &pg)
 	glCheck(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
 	glCheck(glDisableVertexAttribArray(1));
+}
+
+void
+Renderer::draw(const Postprocess &pp, float time)
+{
+	beginBatch();
+	reserve(4, indices);
+	endBatch();
+
+	glCheck(glBindVertexArray(mSimpleVAO));
+	glCheck(glBindBuffer(GL_ARRAY_BUFFER, mVBO));
+	glCheck(glBufferData(GL_ARRAY_BUFFER, sizeof(fullquad), fullquad,
+	                     GL_STREAM_DRAW));
+
+	mPostShader.use();
+	mPostShader.getUniform("time").setFloat(time);
+	mPostShader.getUniform("confuse").setInteger(pp.Confuse);
+	mPostShader.getUniform("chaos").setInteger(pp.Chaos);
+	mPostShader.getUniform("shake").setInteger(pp.Shake);
+	pp.bind(0);
+	drawBuffers();
 }
 
 void

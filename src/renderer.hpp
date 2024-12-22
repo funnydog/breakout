@@ -12,6 +12,7 @@
 
 class Font;
 class ParticleGen;
+class Postprocess;
 class Texture2D;
 
 class Renderer
@@ -21,6 +22,7 @@ public:
 	         const Shader &textShader,
 	         const Shader &levelShader,
 	         const Shader &particleShader,
+	         const Shader &postShader,
 	         const Shader &spriteShader);
 	~Renderer();
 
@@ -33,6 +35,7 @@ public:
 	void draw(const PowerUP &pow);
 	void draw(const Level &level);
 	void draw(const ParticleGen &pg);
+	void draw(const Postprocess &pp, float time);
 
 	void draw(Texture2D texture, glm::vec2 pos, glm::vec2 size,
 	          glm::vec3 color = glm::vec3(1.0f));
@@ -78,6 +81,7 @@ private:
 	Shader mTextShader;
 	Shader mLevelShader;
 	Shader mParticleShader;
+	Shader mPostShader;
 	Shader mSpriteShader;
 
 	GLuint mSimpleVAO;
