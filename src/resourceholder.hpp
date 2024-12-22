@@ -20,6 +20,8 @@ public:
 	Resource& get(Identifier id);
 	const Resource& get(Identifier id) const;
 
+	void destroy();
+
 private:
 	std::unordered_map<Identifier, ResourcePtr> mResourceMap;
 };
@@ -66,4 +68,14 @@ ResourceHolder<Resource, Identifier>::get(Identifier id) const
 	auto found = mResourceMap.find(id);
 	assert(found != mResourceMap.end() && "Resource not found");
 	return *found->second;
+}
+
+template <typename Resource, typename Identifier>
+void
+ResourceHolder<Resource, Identifier>::destroy()
+{
+	for (auto &[_, ptr] : mResourceMap)
+	{
+		ptr->destroy();
+	}
 }

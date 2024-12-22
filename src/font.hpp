@@ -32,6 +32,7 @@ public:
 	Font& operator=(Font&&) noexcept = delete;
 
 	bool loadFromFile(const std::filesystem::path &path, unsigned size);
+	void destroy();
 
 	glm::vec2 getSize(const std::string &text);
 

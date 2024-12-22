@@ -70,6 +70,16 @@ Font::loadFromFile(const std::filesystem::path &path, unsigned size)
 	return true;
 }
 
+void
+Font::destroy()
+{
+	FT_Done_Face(mFace);
+	FT_Done_FreeType(mFT);
+	mFace = nullptr;
+	mFT = nullptr;
+	mTexture.destroy();
+}
+
 glm::vec2
 Font::getSize(const std::string &text)
 {

@@ -38,6 +38,7 @@ Postprocess::~Postprocess()
 	glCheck(glDeleteRenderbuffers(1, &mRBO));
 	glCheck(glDeleteFramebuffers(1, &mFBO));
 	glCheck(glDeleteFramebuffers(1, &mMSFBO));
+	mTexture.destroy();
 }
 
 void

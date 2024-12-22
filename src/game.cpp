@@ -121,6 +121,9 @@ Game::Game()
 
 Game::~Game()
 {
+	mTextures.destroy();
+	mShaders.destroy();
+	mFonts.destroy();
 	glfwDestroyWindow(mWindow);
 	glfwTerminate();
 }
