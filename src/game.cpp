@@ -71,21 +71,8 @@ Game::Game()
 	// load the assets
 	loadAssets();
 
-	auto spriteShader = mShaders.get(ShaderID::Sprite);
-	auto textShader = mShaders.get(ShaderID::Text);
-	auto particleShader = mShaders.get(ShaderID::Particle);
-	auto postShader = mShaders.get(ShaderID::Postprocess);
-	auto levelShader = mShaders.get(ShaderID::Blocks);
-
 	// make the batch renderer
-	mRenderer = std::make_unique<Renderer>(
-		ScreenWidth,
-		ScreenHeight,
-		textShader,
-		levelShader,
-		particleShader,
-		postShader,
-		spriteShader);
+	mRenderer = std::make_unique<Renderer>(ScreenWidth, ScreenHeight, mShaders);
 
 	// set-up the effects
 	mEffects = std::make_unique<Postprocess>(
@@ -768,11 +755,10 @@ Game::loadAssets()
 
 	// shaders
 	static constexpr std::tuple<ShaderID, std::string_view, std::string_view> shaders[] = {
-		{ ShaderID::Sprite, "assets/shaders/sprite.vs", "assets/shaders/sprite.fs" },
-		{ ShaderID::Text, "assets/shaders/text.vs", "assets/shaders/text.fs" },
-		{ ShaderID::Particle, "assets/shaders/particle.vs", "assets/shaders/particle.fs" },
 		{ ShaderID::Postprocess, "assets/shaders/postprocess.vs", "assets/shaders/postprocess.fs" },
-		{ ShaderID::Blocks, "assets/shaders/blocks.vs", "assets/shaders/blocks.fs" },
+		{ ShaderID::Texture, "assets/shaders/simple.vs", "assets/shaders/texture.fs" },
+		{ ShaderID::UniformColor, "assets/shaders/simple.vs", "assets/shaders/uniformcolor.fs" },
+		{ ShaderID::VertexColor, "assets/shaders/vertexcolor.vs", "assets/shaders/vertexcolor.fs" },
 	};
 	for (auto [id, vs, fs] : shaders)
 	{

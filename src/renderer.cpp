@@ -48,21 +48,15 @@ static const float blur_kernel[9] = {
 };
 }
 
-Renderer::Renderer(unsigned screenWidth, unsigned screenHeight,
-                   const Shader &textShader,
-                   const Shader &levelShader,
-                   const Shader &particleShader,
-                   const Shader &postShader,
-                   const Shader &spriteShader)
+Renderer::Renderer(unsigned screenWidth, unsigned screenHeight, const ShaderHolder &shaders)
 	: mVertexOffset(0)
 	, mVertexCount(0)
 	, mIndexOffset(0)
 	, mIndexCount(0)
-	, mTextShader(textShader)
-	, mLevelShader(levelShader)
-	, mParticleShader(particleShader)
-	, mPostShader(postShader)
-	, mSpriteShader(spriteShader)
+	, mPostShader(shaders.get(ShaderID::Postprocess))
+	, mTextureShader(shaders.get(ShaderID::Texture))
+	, mUniformColorShader(shaders.get(ShaderID::UniformColor))
+	, mVertexColorShader(shaders.get(ShaderID::VertexColor))
 {
 	// bind a buffer to allow calling glVertexAttribPointer()
 	glCheck(glGenBuffers(1, &mVBO));
@@ -95,27 +89,23 @@ Renderer::Renderer(unsigned screenWidth, unsigned screenHeight,
 		-1.0f, 1.0f);
 
 	// configure the shaders
-	mTextShader.use();
-	mTextShader.getUniform("image").setInteger(0);
-	mTextShader.getUniform("projection").setMatrix4(proj);
-
-	mLevelShader.use();
-	mLevelShader.getUniform("image").setInteger(0);
-	mLevelShader.getUniform("projection").setMatrix4(proj);
-
-	mParticleShader.use();
-	mParticleShader.getUniform("image").setInteger(0);
-	mParticleShader.getUniform("projection").setMatrix4(proj);
-
 	mPostShader.use();
 	mPostShader.getUniform("scene").setInteger(0);
 	mPostShader.getUniform("offsets").setVector2fv(offsets, 9);
 	mPostShader.getUniform("edge_kernel").setInteger1iv(edge_kernel, 9);
 	mPostShader.getUniform("blur_kernel").setFloat1fv(blur_kernel, 9);
 
-	mSpriteShader.use();
-	mSpriteShader.getUniform("image").setInteger(0);
-	mSpriteShader.getUniform("projection").setMatrix4(proj);
+	mTextureShader.use();
+	mTextureShader.getUniform("image").setInteger(0);
+	mTextureShader.getUniform("projection").setMatrix4(proj);
+
+	mUniformColorShader.use();
+	mUniformColorShader.getUniform("image").setInteger(0);
+	mUniformColorShader.getUniform("projection").setMatrix4(proj);
+
+	mVertexColorShader.use();
+	mVertexColorShader.getUniform("image").setInteger(0);
+	mVertexColorShader.getUniform("projection").setMatrix4(proj);
 }
 
 Renderer::~Renderer()
@@ -149,8 +139,8 @@ Renderer::draw(const std::string &text, glm::vec2 pos, Font &font, glm::vec3 col
 		font.getGlyph(codepoint);
 	}
 
-	mTextShader.use();
-	mTextShader.getUniform("textColor").setVector3f(color);
+	mUniformColorShader.use();
+	mUniformColorShader.getUniform("uniformColor").setVector3f(color);
 	font.getTexture().bind(0);
 
 	mSimpleVertices.clear();
@@ -223,7 +213,7 @@ Renderer::draw(const Level &level)
 	                     mSimpleVertices.data(),
 	                     GL_STREAM_DRAW));
 
-	mLevelShader.use();
+	mTextureShader.use();
 	level.texture.bind(0);
 	drawBuffers();
 }
@@ -258,7 +248,7 @@ Renderer::draw(const ParticleGen &pg)
 	                     mColorVertices.size() * sizeof(mColorVertices[0]),
 	                     mColorVertices.data(),
 	                     GL_STREAM_DRAW));
-	mParticleShader.use();
+	mVertexColorShader.use();
 	pg.getTexture().bind(0);
 
 	// set an additive blending for the glow effect
@@ -314,8 +304,8 @@ Renderer::draw(Texture2D texture, glm::vec2 position, glm::vec2 size, glm::vec3 
 	                     mSimpleVertices.size()*sizeof(mSimpleVertices[0]),
 	                     mSimpleVertices.data(),
 	                     GL_STREAM_DRAW));
-	mSpriteShader.use();
-	mSpriteShader.getUniform("spriteColor").setVector3f(color);
+	mUniformColorShader.use();
+	mUniformColorShader.getUniform("uniformColor").setVector3f(color);
 
 	texture.bind(0);
 	drawBuffers();

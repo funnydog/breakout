@@ -23,11 +23,10 @@ enum class TextureID
 
 enum class ShaderID
 {
-	Particle,
 	Postprocess,
-	Sprite,
-	Text,
-	Blocks,
+	Texture,
+	UniformColor,
+	VertexColor,
 };
 
 template <typename Resource, typename Identifier>

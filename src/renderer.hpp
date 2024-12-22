@@ -9,6 +9,8 @@
 
 #include "shader.hpp"
 #include "entities.hpp"
+#include "resources.hpp"
+#include "resourceholder.hpp"
 
 class Font;
 class ParticleGen;
@@ -18,12 +20,7 @@ class Texture2D;
 class Renderer
 {
 public:
-	Renderer(unsigned screenWidth, unsigned screenHeight,
-	         const Shader &textShader,
-	         const Shader &levelShader,
-	         const Shader &particleShader,
-	         const Shader &postShader,
-	         const Shader &spriteShader);
+	Renderer(unsigned screenWidth, unsigned screenHeight, const ShaderHolder &shaders);
 	~Renderer();
 
 	void clear(glm::vec4 color) const;
@@ -78,11 +75,10 @@ private:
 	unsigned mIndexOffset;
 	unsigned mIndexCount;
 
-	Shader mTextShader;
-	Shader mLevelShader;
-	Shader mParticleShader;
 	Shader mPostShader;
-	Shader mSpriteShader;
+	Shader mTextureShader;
+	Shader mUniformColorShader;
+	Shader mVertexColorShader;
 
 	GLuint mSimpleVAO;
 	GLuint mColorVAO;
