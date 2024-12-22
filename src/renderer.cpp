@@ -120,7 +120,7 @@ Renderer::~Renderer()
 void
 Renderer::clear(glm::vec4 color) const
 {
-	glCheck(glClearColor(color.r, color.g, color.b, 1.0f));
+	glCheck(glClearColor(color.r, color.g, color.b, color.a));
 	glCheck(glClear(GL_COLOR_BUFFER_BIT));
 }
 
