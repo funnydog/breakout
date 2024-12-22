@@ -30,17 +30,36 @@ Renderer::Renderer(const Shader &textShader,
 	, mParticleShader(particleShader)
 	, mSpriteShader(spriteShader)
 {
+	// bind a buffer to allow calling glVertexAttribPointer()
 	glCheck(glGenBuffers(1, &mVBO));
+	glCheck(glBindBuffer(GL_ARRAY_BUFFER, mVBO));
+
 	glCheck(glGenBuffers(1, &mEBO));
-	glCheck(glGenVertexArrays(1, &mVAO));
-	glCheck(glBindVertexArray(mVAO));
+	glCheck(glGenVertexArrays(1, &mSimpleVAO));
+
+	// for mSimpleVAO we have only one packed attrib pointer
+	glCheck(glBindVertexArray(mSimpleVAO));
 	glCheck(glEnableVertexAttribArray(0));
+	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0));
+
+	// for mColorVAO we have two attrib pointers
+	glCheck(glGenVertexArrays(1, &mColorVAO));
+	glCheck(glBindVertexArray(mColorVAO));
+	glCheck(glEnableVertexAttribArray(0));
+	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE,
+	                              sizeof(ColorVertex),
+	                              reinterpret_cast<GLvoid*>(offsetof(ColorVertex, pos))));
+	glCheck(glEnableVertexAttribArray(1));
+	glCheck(glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE,
+	                              sizeof(ColorVertex),
+	                              reinterpret_cast<GLvoid*>(offsetof(ColorVertex, color))));
 }
 
 Renderer::~Renderer()
 {
 	glCheck(glBindVertexArray(0));
-	glCheck(glDeleteVertexArrays(1, &mVAO));
+	glCheck(glDeleteVertexArrays(1, &mColorVAO));
+	glCheck(glDeleteVertexArrays(1, &mSimpleVAO));
 	glCheck(glDeleteBuffers(1, &mEBO));
 	glCheck(glDeleteBuffers(1, &mVBO));
 }
@@ -92,12 +111,12 @@ Renderer::draw(const std::string &text, glm::vec2 pos, Font &font, glm::vec3 col
 	}
 	endBatch();
 
-	bindBuffers();
+	glCheck(glBindVertexArray(mSimpleVAO));
+	glCheck(glBindBuffer(GL_ARRAY_BUFFER, mVBO));
 	glCheck(glBufferData(GL_ARRAY_BUFFER,
 	                     mSimpleVertices.size() * sizeof(mSimpleVertices[0]),
 	                     mSimpleVertices.data(),
 	                     GL_STREAM_DRAW));
-	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0));
 	drawBuffers();
 }
 
@@ -133,8 +152,9 @@ Renderer::draw(const Level &level)
 		}
 	}
 	endBatch();
-	bindBuffers();
-	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0));
+
+	glCheck(glBindVertexArray(mSimpleVAO));
+	glCheck(glBindBuffer(GL_ARRAY_BUFFER, mVBO));
 	glCheck(glBufferData(GL_ARRAY_BUFFER,
 	                     mSimpleVertices.size() * sizeof(mSimpleVertices[0]),
 	                     mSimpleVertices.data(),
@@ -168,13 +188,9 @@ Renderer::draw(const ParticleGen &pg)
 		}
 	}
 	endBatch();
-	bindBuffers();
-	glEnableVertexAttribArray(1);
-	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE,
-	                              sizeof(ColorVertex), 0));
-	glCheck(glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE,
-	                              sizeof(ColorVertex),
-	                              reinterpret_cast<GLvoid*>(offsetof(ColorVertex, color))));
+
+	glCheck(glBindVertexArray(mColorVAO));
+	glCheck(glBindBuffer(GL_ARRAY_BUFFER, mVBO));
 	glCheck(glBufferData(GL_ARRAY_BUFFER,
 	                     mColorVertices.size() * sizeof(mColorVertices[0]),
 	                     mColorVertices.data(),
@@ -207,8 +223,9 @@ Renderer::draw(Texture2D texture, glm::vec2 position, glm::vec2 size, glm::vec3 
 		mSimpleVertices.push_back(v);
 	}
 	endBatch();
-	bindBuffers();
-	glCheck(glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0));
+
+	glCheck(glBindVertexArray(mSimpleVAO));
+	glCheck(glBindBuffer(GL_ARRAY_BUFFER, mVBO));
 	glCheck(glBufferData(GL_ARRAY_BUFFER,
 	                     mSimpleVertices.size()*sizeof(mSimpleVertices[0]),
 	                     mSimpleVertices.data(),
@@ -275,13 +292,6 @@ void
 Renderer::endBatch()
 {
 	saveBatch();
-}
-
-void
-Renderer::bindBuffers() const
-{
-	glCheck(glBindVertexArray(mVAO));
-	glCheck(glBindBuffer(GL_ARRAY_BUFFER, mVBO));
 }
 
 void

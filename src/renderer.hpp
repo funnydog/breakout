@@ -40,8 +40,6 @@ private:
 	void reserve(unsigned vcount, std::span<const std::uint16_t> indices);
 	void beginBatch();
 	void endBatch();
-
-	void bindBuffers() const;
 	void drawBuffers() const;
 
 private:
@@ -81,7 +79,8 @@ private:
 	Shader mParticleShader;
 	Shader mSpriteShader;
 
-	GLuint mVAO;
+	GLuint mSimpleVAO;
+	GLuint mColorVAO;
 	GLuint mVBO;
 	GLuint mEBO;
 };
