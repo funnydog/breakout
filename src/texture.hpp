@@ -24,11 +24,10 @@ public:
 
 	void bind() const noexcept;
 	void bind(int textureUnit) const noexcept;
+	void attachToFramebuffer(int level) const noexcept;
 
 	unsigned getWidth() const noexcept;
 	unsigned getHeight() const noexcept;
-
-	GLuint getHandle() const noexcept { return glHandle; }
 
 private:
 	GLuint glHandle;

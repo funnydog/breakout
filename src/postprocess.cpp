@@ -26,8 +26,7 @@ Postprocess::Postprocess(unsigned width, unsigned height)
 
 	glCheck(glBindFramebuffer(GL_FRAMEBUFFER, mFBO));
 	mTexture.create(width, height, nullptr, true, true);
-	glCheck(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-	                               mTexture.getHandle(), 0));
+	mTexture.attachToFramebuffer(0);
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
 		throw std::runtime_error("Postprocess: Failed to initialize FBO");

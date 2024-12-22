@@ -181,6 +181,13 @@ Texture2D::bind(int textureUnit) const noexcept
 	glCheck(glBindTexture(GL_TEXTURE_2D, glHandle));
 }
 
+void
+Texture2D::attachToFramebuffer(int level) const noexcept
+{
+	glCheck(glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+	                               GL_TEXTURE_2D, glHandle, level));
+}
+
 unsigned
 Texture2D::getWidth() const noexcept
 {
