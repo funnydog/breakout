@@ -24,8 +24,8 @@ static const float fullquad[][4] = {
 	{  1.f,  1.f, 1.f, 1.f },
 	{  1.f, -1.f, 1.f, 0.f },
 };
-static const float offset = 1.0f / 300.0f;
-static const GLfloat offsets[][2] = {
+static const float offset = 1.f / 256.f;
+static const float offsets[][2] = {
 	{ -offset,  offset },
 	{    0.0f,  offset },
 	{  offset,  offset },
@@ -41,10 +41,10 @@ static const GLint edge_kernel[9] = {
 	-1,  8, -1,
 	-1, -1, -1,
 };
-static const GLfloat blur_kernel[9] = {
-	1.0f / 16.0f, 2.0f / 16.0f, 1.0f / 16.0f,
-	2.0f / 16.0f, 4.0f / 16.0f, 2.0f / 16.0f,
-	1.0f / 16.0f, 2.0f / 16.0f, 1.0f / 16.0f,
+static const float blur_kernel[9] = {
+	1.f / 16.f, 2.f / 16.f, 1.f / 16.f,
+	2.f / 16.f, 4.f / 16.f, 2.f / 16.f,
+	1.f / 16.f, 2.f / 16.f, 1.f / 16.f,
 };
 }
 
