@@ -36,7 +36,6 @@ Game::Game()
 	, mCurrentLevel(0)
 	, mLives(InitialLives)
 	, mWindow(nullptr)
-	, mKeys()
 {
 	const char *error;
 	if (!glfwInit())
@@ -159,13 +158,8 @@ Game::handleEvent(const Event &event)
 				glfwSetWindowShouldClose(ep->window, GLFW_TRUE);
 				break;
 			default:
-				mKeys[ep->key] = GL_TRUE;
 				break;
 			}
-		}
-		else if (const auto ep(std::get_if<KeyReleased>(&event)); ep)
-		{
-			mKeys[ep->key] = GL_FALSE;
 		}
 		break;
 	case State::Menu:
@@ -216,7 +210,7 @@ Game::update(GLfloat dt)
 
 	// update the paddle
 	auto vel = PlayerVelocity * dt;
-	if (mKeys[GLFW_KEY_A])
+	if (glfwGetKey(mWindow, GLFW_KEY_A) == GLFW_PRESS)
 	{
 		if (mPlayer.pos.x >= 0.f)
 		{
@@ -228,7 +222,7 @@ Game::update(GLfloat dt)
 		}
 	}
 
-	if (mKeys[GLFW_KEY_D])
+	if (glfwGetKey(mWindow, GLFW_KEY_D) == GLFW_PRESS)
 	{
 		if (mPlayer.pos.x + mPlayer.size.x < ScreenWidth)
 		{
@@ -239,7 +233,7 @@ Game::update(GLfloat dt)
 			}
 		}
 	}
-	if (mKeys[GLFW_KEY_SPACE])
+	if (glfwGetKey(mWindow, GLFW_KEY_SPACE) == GLFW_PRESS)
 	{
 		mBall.stuck = false;
 	}

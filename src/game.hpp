@@ -77,6 +77,4 @@ private:
 	TextureHolder mTextures;
 	ShaderHolder mShaders;
 	FontHolder mFonts;
-
-	bool mKeys[1024];
 };
