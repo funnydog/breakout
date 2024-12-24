@@ -65,6 +65,13 @@ Game::Game()
 	glCheck(glEnable(GL_BLEND));
 	glCheck(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
+	// audio device
+	if (!mAudioDevice.open(""))
+	{
+		throw std::runtime_error("Cannot open the audio device");
+	}
+	mAudioDevice.setMasterVolume(50.f);
+
 	mEventQueue.track(mWindow);
 
 	// load the assets
@@ -127,6 +134,7 @@ Game::run()
 
 		processInput();
 		update(frameTime);
+		mAudioDevice.update();
 
 		render();
 		glfwSwapBuffers(mWindow);
@@ -304,6 +312,11 @@ Game::update(GLfloat dt)
 		{
 			resetLevel();
 			mState = State::Menu;
+			mAudioDevice.play(SoundID::Over);
+		}
+		else
+		{
+			mAudioDevice.play(SoundID::Dead);
 		}
 		resetPlayer();
 	}
@@ -593,11 +606,13 @@ Game::doCollisions()
 		{
 			obj.dead = true;
 			spawnPowerUPs(obj.position);
+			mAudioDevice.play(SoundID::Block);
 		}
 		else
 		{
 			mShakeEffect.enableFor(0.05f);
 			mEffects->Shake = true;
+			mAudioDevice.play(SoundID::Solid);
 		}
 
 		if (mPassThroughEffect.isEnabled() && !obj.solid)
@@ -649,6 +664,8 @@ Game::doCollisions()
 			mBall.vel.y = -1.0f * std::abs(mBall.vel.y);
 			mBall.vel = glm::normalize(mBall.vel) * glm::length(oldvel);
 			mBall.stuck = mStickyEffect.isEnabled();
+
+			mAudioDevice.play(SoundID::Paddle);
 		}
 	}
 
@@ -663,6 +680,7 @@ Game::doCollisions()
 		{
 			activatePowerUP(p.type);
 			p.dead = true;
+			mAudioDevice.play(SoundID::Powerup);
 		}
 	}
 }
@@ -769,4 +787,17 @@ Game::loadAssets()
 		mFonts.load(id, path, size);
 	}
 
+	// sound buffers
+	static constexpr std::pair<SoundID, std::string_view> sounds[] = {
+		{ SoundID::Block,   "assets/audio/block.wav"   },
+		{ SoundID::Dead,    "assets/audio/dead.wav"    },
+		{ SoundID::Over,    "assets/audio/over.wav"    },
+		{ SoundID::Paddle,  "assets/audio/paddle.wav"  },
+		{ SoundID::Powerup, "assets/audio/powerup.wav" },
+		{ SoundID::Solid,   "assets/audio/solid.wav"   },
+	};
+	for (auto [id, path] : sounds)
+	{
+		mAudioDevice.load(id, path);
+	}
 }

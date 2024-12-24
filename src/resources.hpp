@@ -29,6 +29,16 @@ enum class ShaderID
 	VertexColor,
 };
 
+enum class SoundID
+{
+	Block,
+	Dead,
+	Over,
+	Paddle,
+	Powerup,
+	Solid,
+};
+
 template <typename Resource, typename Identifier>
 class ResourceHolder;
 

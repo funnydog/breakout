@@ -6,6 +6,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
+#include "audiodevice.hpp"
 #include "effect.hpp"
 #include "entities.hpp"
 #include "eventqueue.hpp"
@@ -71,6 +72,9 @@ private:
 	std::unique_ptr<Renderer> mRenderer;
 	std::unique_ptr<ParticleGen> mBallParticles;
 	std::unique_ptr<Postprocess> mEffects;
+
+	// audio
+	AudioDevice mAudioDevice;
 
 	// support data
 	EventQueue mEventQueue;

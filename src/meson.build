@@ -3,6 +3,7 @@ deps += dependency('glew', required : true, fallback : ['glew', 'glew_dep'])
 deps += dependency('glfw3', required : true, fallback : ['glfw', 'glfw_dep'])
 deps += dependency('glm', required : true, fallback : ['glm', 'glm_dep'])
 deps += dependency('freetype2', required : true, fallback : ['freetype2', 'freetype_dep'])
+deps += dependency('openal', required : true, fallback : ['openal-soft', 'openal_dep'])
 
 ln = find_program('ln')
 asset_link = custom_target(
@@ -13,6 +14,8 @@ asset_link = custom_target(
 
 executable(
   'breakout', [
+    'alcheck.cpp',
+    'audiodevice.cpp',
     'effect.cpp',
     'eventqueue.cpp',
     'font.cpp',
