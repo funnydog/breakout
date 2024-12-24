@@ -235,10 +235,12 @@ loadWav(const std::filesystem::path &path)
 			WaveFormatChunk fmt;
 			if (!file.read(reinterpret_cast<char *>(&fmt), header.chunkSize))
 			{
+				std::cerr << "cannot read the format of the WAV file.\n";
 				return 0;
 			}
 			if (fmt.wFormatTag != 1)
 			{
+				std::cerr << "cannot read non-PCM WAV files.\n";
 				return 0;
 			}
 
@@ -265,6 +267,7 @@ loadWav(const std::filesystem::path &path)
 			std::vector<char> samples(header.chunkSize);
 			if (!file.read(samples.data(), samples.size()))
 			{
+				std::cerr << "cannot read the samples.\n";
 				return 0;
 			}
 			unsigned buffer;
@@ -274,6 +277,7 @@ loadWav(const std::filesystem::path &path)
 			             sampleRate);
 			if (alGetError())
 			{
+				std::cerr << "cannot upload the samples.\n";
 				alDeleteBuffers(1, &buffer);
 				return 0;
 			}
