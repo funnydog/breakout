@@ -16,10 +16,11 @@ compiler.
 
 The following libraries are required:
 
+  * freetype2 - to load the fonts
   * GLFW3 - the graphics library
   * glew - for the OpenGL extensions
   * glm - for vectors and matrices
-  * freetype2 - to load the fonts
+  * OpenAL-Soft - for the sound effects
 
 If any of these dependencies are not available, the meson build system
 will download and compile them automatically. Please note however that
