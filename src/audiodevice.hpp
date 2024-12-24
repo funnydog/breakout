@@ -21,8 +21,6 @@ public:
 	bool open(const std::string &name);
 	void close();
 
-	void bind() const;
-
 	float getMasterVolume() const;
 	void setMasterVolume(float value);
 
