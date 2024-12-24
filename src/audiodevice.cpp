@@ -190,15 +190,18 @@ AudioDevice::play(SoundID soundId)
 void
 AudioDevice::update()
 {
-	auto i = mPlayingSources.size();
-	while (i-- > 0)
+	// NOTE: removing elements invalidates references, pointers
+	// and iterators that refer to the following elements: we are
+	// safe since pop_back() removes previous elements.
+	for (auto it = mPlayingSources.rbegin(), end = mPlayingSources.rend();
+	     it != end; it++)
 	{
 		int status;
-		alCheck(alGetSourcei(mPlayingSources[i], AL_SOURCE_STATE, &status));
+		alCheck(alGetSourcei(*it, AL_SOURCE_STATE, &status));
 		if (status == AL_STOPPED)
 		{
-			mStoppedSources.push_back(mPlayingSources[i]);
-			mPlayingSources[i] = mPlayingSources.back();
+			mStoppedSources.push_back(*it);
+			*it = mPlayingSources.back();
 			mPlayingSources.pop_back();
 		}
 	}
