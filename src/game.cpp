@@ -479,8 +479,10 @@ Game::resetPlayer()
 	mPassThroughEffect.disable();
 	mChaosEffect.disable();
 	mConfuseEffect.disable();
+
 	mEffects->Chaos = false;
 	mEffects->Confuse = false;
+	mEffects->Shake = false;
 }
 
 void
