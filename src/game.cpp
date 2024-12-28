@@ -540,6 +540,7 @@ getDirection(glm::vec2 target)
 	};
 	float max = 0.0f;
 	int best_match = 0;
+	target = glm::normalize(target);
 	for (int i = 0; i < 4; i++)
 	{
 		float dot = glm::dot(target, compass[i]);
