@@ -258,8 +258,6 @@ Renderer::draw(const ParticleGen &pg)
 
 	// restore the previous blend function
 	glCheck(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-
-	glCheck(glDisableVertexAttribArray(1));
 }
 
 void
