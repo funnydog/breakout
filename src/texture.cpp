@@ -48,17 +48,6 @@ Texture2D::create(unsigned width, unsigned height, const void *pixels, bool repe
 	}
 
 	glCheck(glBindTexture(GL_TEXTURE_2D, glHandle));
-	glCheck(glTexImage2D(
-		        GL_TEXTURE_2D,
-		        0,
-		        GL_RGBA,
-		        static_cast<GLsizei>(width),
-		        static_cast<GLsizei>(height),
-		        0,
-		        GL_RGBA,
-		        GL_UNSIGNED_BYTE,
-		        pixels));
-
 	GLint param = repeat ? GL_REPEAT : GL_CLAMP_TO_EDGE;
 	glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, param));
 	glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, param));
@@ -66,6 +55,13 @@ Texture2D::create(unsigned width, unsigned height, const void *pixels, bool repe
 	param = smooth ? GL_LINEAR : GL_NEAREST;
 	glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, param));
 	glCheck(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, param));
+
+	glCheck(glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, width, height));
+	if (pixels)
+	{
+		glCheck(glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA,
+		                        GL_UNSIGNED_BYTE, pixels));
+	}
 	return true;
 }
 

@@ -59,7 +59,16 @@ Game::Game()
 	glfwMakeContextCurrent(mWindow);
 	glewExperimental = GL_TRUE;
 
-	glCheck(glewInit());
+	if (GLEW_OK != glewInit())
+	{
+		throw std::runtime_error("Unable to initialize GLEW");
+	}
+
+	if (!GLEW_ARB_texture_storage)
+	{
+		throw std::runtime_error("ARB_texture_storage required!");
+	}
+
 	glCheck(glViewport(0, 0, ScreenWidth, ScreenHeight));
 	glCheck(glEnable(GL_CULL_FACE));
 	glCheck(glEnable(GL_BLEND));
