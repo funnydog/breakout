@@ -17,7 +17,13 @@ Postprocess::Postprocess(unsigned width, unsigned height)
 
 	glCheck(glBindFramebuffer(GL_FRAMEBUFFER, mMSFBO));
 	glCheck(glBindRenderbuffer(GL_RENDERBUFFER, mRBO));
-	glCheck(glRenderbufferStorageMultisample(GL_RENDERBUFFER, 8, GL_RGB, width, height));
+	GLint samples;
+	glGetIntegerv(GL_MAX_SAMPLES, &samples);
+	if (samples > 8)
+	{
+		samples = 8;
+	}
+	glCheck(glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_RGB, width, height));
 	glCheck(glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, mRBO));
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 	{
