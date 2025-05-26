@@ -6,6 +6,7 @@
 #include "glcheck.hpp"
 #include "particle.hpp"
 #include "postprocess.hpp"
+#include "utility.hpp"
 
 #include "renderer.hpp"
 
@@ -133,8 +134,8 @@ Renderer::draw(const std::string &text, glm::vec2 pos, Font &font, glm::vec3 col
 	}
 
 	// ensure the needed glyphs are rendered
-	std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> cv;
-	for (auto codepoint: cv.from_bytes(text))
+	auto codepoints = Utility::decodeUTF8(text);
+	for (auto codepoint: codepoints)
 	{
 		font.getGlyph(codepoint);
 	}
@@ -146,7 +147,7 @@ Renderer::draw(const std::string &text, glm::vec2 pos, Font &font, glm::vec3 col
 	mSimpleVertices.clear();
 	beginBatch();
 	pos.y += font.getLineHeight();
-	for (auto codepoint : cv.from_bytes(text))
+	for (auto codepoint : codepoints)
 	{
 		const auto &g = font.getGlyph(codepoint);
 		pos.x += g.bearing.x;

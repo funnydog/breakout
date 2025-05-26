@@ -1,11 +1,10 @@
-#include <codecvt>
 #include <iostream>
-#include <locale>
 #include <stdexcept>
 #include <string>
 
 #include "glcheck.hpp"
 #include "font.hpp"
+#include "utility.hpp"
 
 namespace
 {
@@ -85,8 +84,8 @@ Font::getSize(const std::string &text)
 {
 	float width = 0;
 	float height = 0;
-	std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> cv;
-	for (auto codepoint: cv.from_bytes(text))
+	auto codepoints = Utility::decodeUTF8(text);
+	for (auto codepoint: codepoints)
 	{
 		const auto &glyph = getGlyph(codepoint);
 		if (height < glyph.size.y + glyph.bearing.y)
